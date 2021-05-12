@@ -72,8 +72,13 @@ object MapGenerator extends App {
     val windowHeight:Int = squareSide * height
 
     //Cell(squareSide)
+    val perlin = PerlinNoise(256)
+    val frequency = 0.03
+    val thresh = 0.5
 
-    val points = Vector.tabulate(height+1, width+1)((_, _) => getRandomBit())
+    val points = Vector.tabulate(height+1, width+1)((x, y) =>
+      if(perlin.noise(x*frequency, y*frequency) >= thresh) 1 else 0)
+    //val points = Vector.tabulate(height+1, width+1)((x, y) => getRandomBit())
     val map = Vector.tabulate(height, width)((x, y) => Cell(squareSide, x, y, calculateIsoValue(x, y)))
 
     val GUI = new MapGUI(windowWidth, windowHeight)
@@ -121,6 +126,6 @@ object MapGenerator extends App {
   //calculate square isovalue from 16 possibilities
   val getIsoValue: (Int, Int, Int, Int) => Int = (a, b, c, d) => a*8 + b*4 + c*2 + d
 
-  val map = Map(25, 50)
+  val map = Map(50, 50)
   //println(map)
 }
