@@ -1,5 +1,7 @@
 package mapGenerator
 
+import java.util
+
 /*
   Map generator for battle simulation.
 */
@@ -32,6 +34,42 @@ object MapGenerator extends App {
         case 10 => ((xPix + xNORTH, yPix + yNORTH, xPix + xEAST, yPix + yEAST), (xPix + xSOUTH, yPix + ySOUTH, xPix + xWEST, yPix + yWEST))
         case 13 => (xPix + xEAST, yPix + yEAST, xPix + xSOUTH, yPix + ySOUTH)
         case 14 => (xPix + xWEST, yPix + yWEST, xPix + xSOUTH, yPix + ySOUTH)
+        case _ => null
+      }
+    }
+
+    def getPolygons() = {
+      val xPix = y*squareSide
+      val yPix = x*squareSide
+
+      isoValue match {
+        case 1 => (Vector(xPix, xPix + xWEST, xPix + xSOUTH), Vector(yPix + squareSide, yPix + yWEST, yPix + ySOUTH))
+        case 2 => (Vector(xPix + squareSide, xPix + xSOUTH, xPix + xEAST),
+          Vector(yPix + squareSide, yPix + ySOUTH, yPix + yEAST))
+        case 3 => (Vector(xPix + xWEST, xPix + xEAST, xPix + squareSide, xPix),
+          Vector(yPix + yWEST, yPix + yEAST, yPix + squareSide, yPix + squareSide))
+        case 4 => (Vector(xPix + squareSide, xPix + xNORTH, xPix + xEAST), Vector(yPix, yPix + yNORTH, yPix + yEAST))
+        case 5 => (Vector(xPix + squareSide, xPix + xEAST, xPix + xSOUTH, xPix, xPix + xWEST, xPix + xNORTH),
+          Vector(yPix, yPix + yEAST, yPix + ySOUTH, yPix + squareSide, yPix + yWEST, yPix + yNORTH))
+        case 6 => (Vector(xPix + squareSide, xPix + squareSide, xPix + xSOUTH, xPix + xNORTH),
+          Vector(yPix, yPix + squareSide, yPix + ySOUTH, yPix + yNORTH))
+        case 7 => (Vector(xPix + xWEST, xPix + xNORTH, xPix + squareSide, xPix + squareSide, xPix),
+          Vector(yPix + yWEST, yPix + yNORTH, yPix, yPix + squareSide, yPix + squareSide))
+        case 8 => (Vector(xPix, xPix + xNORTH, xPix + xWEST), Vector(yPix, yPix + yNORTH, yPix + yWEST))
+        case 9 => (Vector(xPix + xNORTH, xPix + xSOUTH, xPix, xPix),
+          Vector(yPix + yNORTH, yPix + ySOUTH, yPix + squareSide, yPix))
+        case 10 => (Vector(xPix, xPix + xNORTH, xPix + xEAST, xPix + squareSide, xPix + xSOUTH, xPix + xWEST),
+          Vector(yPix, yPix + yNORTH, yPix + yEAST, yPix + squareSide, yPix + ySOUTH, yPix + yWEST))
+        case 11 => (Vector(xPix + xNORTH, xPix + xEAST, xPix + squareSide, xPix, xPix),
+          Vector(yPix + yNORTH, yPix + yEAST, yPix + squareSide, yPix + squareSide, yPix))
+        case 12 => (Vector(xPix, xPix + squareSide, xPix + xEAST, xPix + xWEST),
+          Vector(yPix, yPix, yPix + yEAST, yPix + yWEST))
+        case 13 => (Vector(xPix + xEAST, xPix + xSOUTH, xPix, xPix, xPix + squareSide),
+          Vector(yPix + yEAST, yPix + ySOUTH, yPix + squareSide, yPix, yPix))
+        case 14 => (Vector(xPix + xSOUTH, xPix + xWEST, xPix, xPix + squareSide, xPix + squareSide),
+          Vector(yPix + ySOUTH, yPix + yWEST, yPix, yPix, yPix + squareSide))
+        case 15 => (Vector(xPix, xPix + squareSide, xPix + squareSide, xPix),
+          Vector(yPix, yPix, yPix + squareSide, yPix + squareSide))
         case _ => null
       }
     }
@@ -72,26 +110,16 @@ object MapGenerator extends App {
     val windowHeight:Int = squareSide * height
 
     //Cell(squareSide)
+    val perlin = PerlinNoise(128)
+    val frequency = 0.02
 
-    val points = Vector.tabulate(height+1, width+1)((_, _) => getRandomBit())
+    val points = Vector.tabulate(height+1, width+1)((x, y) => if(perlin.noise(x*frequency, y*frequency) >= 0.2) 1 else 0)
     val map = Vector.tabulate(height, width)((x, y) => Cell(squareSide, x, y, calculateIsoValue(x, y)))
 
     val GUI = new MapGUI(windowWidth, windowHeight)
 
-    map.foreach(row => row.foreach(cell => {
-      val lines = cell.getLines()
-      lines match {
-        case (x1:Int, y1:Int, x2:Int, y2:Int) => {
-          GUI.addLine(x1, y1, x2, y2)
-        }
-        case ((x1:Int, y1:Int, x2:Int, y2:Int), (x3:Int, y3:Int, x4:Int, y4:Int)) => {
-          GUI.addLine(x1, y1, x2, y2)
-          GUI.addLine(x3, y3, x4, y4)
-        }
-        case _ =>
-      }
-    }))
-
+    addLines()
+    addPolygons()
     GUI.drawMap()
 
     override def toString(): String =
@@ -105,6 +133,40 @@ object MapGenerator extends App {
       getIsoValue(a, b, c, d)
     }
 
+    private def addLines(): Unit = {
+      map.foreach(row => row.foreach(cell => {
+        val lines = cell.getLines()
+        lines match {
+          case (x1:Int, y1:Int, x2:Int, y2:Int) => {
+            GUI.addLine(x1, y1, x2, y2)
+          }
+          case ((x1:Int, y1:Int, x2:Int, y2:Int), (x3:Int, y3:Int, x4:Int, y4:Int)) => {
+            GUI.addLine(x1, y1, x2, y2)
+            GUI.addLine(x3, y3, x4, y4)
+          }
+          case _ =>
+        }
+      }))
+    }
+
+    private def addPolygons():Unit = {
+      map.foreach(row => row.foreach(cell => {
+        val polygons = cell.getPolygons()
+
+        polygons match {
+          case (xs: Vector[Int], ys: Vector[Int]) => {
+            val xsJava = new util.Vector[Integer]()
+            val ysJava = new util.Vector[Integer]()
+
+            xs.foreach(x => xsJava.add(x))
+            ys.foreach(y => ysJava.add(y))
+
+            GUI.addPolygon(xsJava, ysJava)
+          }
+          case _ =>
+        }
+      }))
+    }
   }
 
   object Map {
@@ -121,6 +183,6 @@ object MapGenerator extends App {
   //calculate square isovalue from 16 possibilities
   val getIsoValue: (Int, Int, Int, Int) => Int = (a, b, c, d) => a*8 + b*4 + c*2 + d
 
-  val map = Map(25, 50)
+  val map = Map(100, 120)
   //println(map)
 }

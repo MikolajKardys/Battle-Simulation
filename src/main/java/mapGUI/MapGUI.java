@@ -2,8 +2,7 @@ package mapGUI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.*;
 
 public class MapGUI extends JPanel {
     private class Line {
@@ -22,16 +21,27 @@ public class MapGUI extends JPanel {
 
     private final int windowWidth;
     private final int windowHeight;
-    LinkedList<Line> lines = new LinkedList<Line>();
+    LinkedList<Line> lines;
+    LinkedList<Polygon> polygons;
 
     public MapGUI(int windowWidth, int windowHeight) {
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
+        this.lines = new LinkedList<>();
+        this.polygons = new LinkedList<>();
     }
 
     public void addLine(int x1, int y1, int x2, int y2) {
         Line line = new Line(x1, y1, x2, y2);
         this.lines.add(line);
+    }
+
+    public void addPolygon(Vector<Integer> xs, Vector<Integer> ys) {
+        int n = xs.size();
+        Polygon poly = new Polygon();
+        for(int i = 0; i < n; i++)
+            poly.addPoint(xs.get(i), ys.get(i));
+        this.polygons.add(poly);
     }
 
     public void drawMap() {
@@ -52,11 +62,22 @@ public class MapGUI extends JPanel {
         this.setSize(this.windowWidth, this.windowHeight);
         this.setLocation(0, 0);
 
-        Iterator<Line> iterator = this.lines.iterator();
+        Iterator<Line> lineIterator = this.lines.iterator();
         Line line;
-        while(iterator.hasNext()) {
-            line = iterator.next();
+        while(lineIterator.hasNext()) {
+            line = lineIterator.next();
             g.drawLine(line.x1, line.y1, line.x2, line.y2);
+        }
+
+        g.setColor(new Color(50, 255, 50));
+        g.fillRect(0, 0, windowWidth, windowHeight);
+
+        Iterator<Polygon> polyIterator = this.polygons.iterator();
+        Polygon poly;
+        while(polyIterator.hasNext()) {
+            poly = polyIterator.next();
+            g.setColor(new Color(0, 100, 0));
+            g.fillPolygon(poly);
         }
     }
 
