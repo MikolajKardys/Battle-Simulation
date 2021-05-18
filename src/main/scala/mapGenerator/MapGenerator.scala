@@ -9,17 +9,17 @@ import java.util
 object MapGenerator extends App {
   class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int, val altitude: Double) {
     val yNORTH = 0
-    val xNORTH = squareSide/2
-    val yEAST = squareSide/2
-    val xEAST = squareSide
-    val ySOUTH = squareSide
-    val xSOUTH = squareSide/2
-    val yWEST = squareSide/2
+    val xNORTH: Int = squareSide/2
+    val yEAST: Int = squareSide/2
+    val xEAST: Int = squareSide
+    val ySOUTH: Int = squareSide
+    val xSOUTH: Int = squareSide/2
+    val yWEST: Int = squareSide/2
     val xWEST = 0
 
-    override def toString(): String = s"$altitude"
+    override def toString: String = s"$altitude"
 
-    def getLines() = {
+    def getLines: Serializable = {
       //do not change next two lines!
       val xPix = y*squareSide
       val yPix = x*squareSide
@@ -29,7 +29,7 @@ object MapGenerator extends App {
         case 2 => (xPix + xSOUTH, yPix + ySOUTH, xPix + xEAST, yPix + yEAST)
         case 3 | 12 => (xPix + xEAST, yPix + yEAST, xPix + xWEST, yPix + yWEST)
         case 4 | 11 => (xPix + xNORTH, yPix + yNORTH, xPix + xEAST, yPix + yEAST)
-        case 5 => ((xPix + xNORTH, yPix + yNORTH, xPix + xWEST, yPix + yWEST), (xPix + xSOUTH, yPix + ySOUTH, xPix + xEAST, yPix + yEAST))
+        case 5  => ((xPix + xNORTH, yPix + yNORTH, xPix + xWEST, yPix + yWEST), (xPix + xSOUTH, yPix + ySOUTH, xPix + xEAST, yPix + yEAST))
         case 6 | 9 => (xPix + xNORTH, yPix + yNORTH, xPix + xSOUTH, yPix + ySOUTH)
         case 7 | 8 => (xPix + xNORTH, yPix + yNORTH, xPix + xWEST, yPix + yWEST)
         case 10 => ((xPix + xNORTH, yPix + yNORTH, xPix + xEAST, yPix + yEAST), (xPix + xSOUTH, yPix + ySOUTH, xPix + xWEST, yPix + yWEST))
@@ -39,7 +39,7 @@ object MapGenerator extends App {
       }
     }
 
-    def getPolygons() = {
+    def getPolygons: (Vector[Int], Vector[Int]) = {
       val xPix = y*squareSide
       val yPix = x*squareSide
 
@@ -112,13 +112,13 @@ object MapGenerator extends App {
     val windowHeight:Int = squareSide * height
 
     //Cell(squareSide)
-    val perlin = PerlinNoise(128)
+    val perlin: PerlinNoise = PerlinNoise(128)
     val biomFrequency = 0.02
     val terrainFrequency = 0.02
 
     //point 1 is black point 0 is white
-    val points = Vector.tabulate(height+1, width+1)((x, y) => if(perlin.noise(x*biomFrequency, y*biomFrequency) >= 0.2) 1 else 0)
-    val map = Vector.tabulate(height, width)((x, y) =>
+    val points: Seq[Vector[Int]] = Vector.tabulate(height+1, width+1)((x, y) => if(perlin.noise(x*biomFrequency, y*biomFrequency) >= 0.2) 1 else 0)
+    val map: Seq[Vector[Cell]] = Vector.tabulate(height, width)((x, y) =>
       Cell(squareSide, x, y, calculateIsoValue(x, y), getAltitude(perlin.noise(x*terrainFrequency, y*terrainFrequency))))
 
     val GUI = new MapGUI(windowWidth, windowHeight)
@@ -128,7 +128,7 @@ object MapGenerator extends App {
     addRectangles()
     GUI.drawMap()
 
-    override def toString(): String =
+    override def toString: String =
       map.map(row => row.mkString(" ")).mkString("\n")
 
     private def calculateIsoValue(x: Int, y: Int): Int = {
@@ -141,15 +141,15 @@ object MapGenerator extends App {
 
     private def addLines(): Unit = {
       map.foreach(row => row.foreach(cell => {
-        val lines = cell.getLines()
+        val lines = cell.getLines
         lines match {
-          case (x1:Int, y1:Int, x2:Int, y2:Int) => {
+          case (x1:Int, y1:Int, x2:Int, y2:Int) =>
             GUI.addLine(x1, y1, x2, y2)
-          }
-          case ((x1:Int, y1:Int, x2:Int, y2:Int), (x3:Int, y3:Int, x4:Int, y4:Int)) => {
+
+          case ((x1:Int, y1:Int, x2:Int, y2:Int), (x3:Int, y3:Int, x4:Int, y4:Int)) =>
             GUI.addLine(x1, y1, x2, y2)
             GUI.addLine(x3, y3, x4, y4)
-          }
+
           case _ =>
         }
       }))
@@ -157,10 +157,10 @@ object MapGenerator extends App {
 
     private def addPolygons():Unit = {
       map.foreach(row => row.foreach(cell => {
-        val polygons = cell.getPolygons()
+        val polygons = cell.getPolygons
 
         polygons match {
-          case (xs: Vector[Int], ys: Vector[Int]) => {
+          case (xs: Vector[Int], ys: Vector[Int]) =>
             val xsJava = new util.Vector[Integer]()
             val ysJava = new util.Vector[Integer]()
 
@@ -168,7 +168,7 @@ object MapGenerator extends App {
             ys.foreach(y => ysJava.add(y))
 
             GUI.addPolygon(xsJava, ysJava)
-          }
+
           case _ =>
         }
       }))

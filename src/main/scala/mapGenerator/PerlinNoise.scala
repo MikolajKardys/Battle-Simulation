@@ -1,5 +1,7 @@
 package mapGenerator
 
+import scala.util.Random
+
 class PerlinNoise(val N: Int) {
   class Vector2D(val x: Double, val y:Double) {
     def dot(other: Vector2D): Double = {
@@ -11,14 +13,14 @@ class PerlinNoise(val N: Int) {
     def apply(x: Double, y: Double): Vector2D = new Vector2D(x, y)
   }
 
-  val rand = scala.util.Random
+  val rand: Random.type = scala.util.Random
   //create permutation table
-  val S = rand.shuffle((0 until N).toVector)
-  val P = S ++ S
+  val S: Seq[Int] = rand.shuffle((0 until N).toVector)
+  val P: Seq[Int] = S ++ S
 
   def noise(x: Double, y: Double): Double = {
-    val xIdx:Int = (Math.floor(x).toInt)%N
-    val yIdx:Int = (Math.floor(y).toInt)%N
+    val xIdx:Int = Math.floor(x).toInt % N
+    val yIdx:Int = Math.floor(y).toInt % N
     val xOff:Double = x - Math.floor(x)
     val yOff:Double = y - Math.floor(y)
 
