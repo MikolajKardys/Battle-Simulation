@@ -7,7 +7,7 @@ import java.util
 */
 
 object MapGenerator extends App {
-  class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int) {
+  class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int, val altitude: Double) {
     val yNORTH = 0
     val xNORTH = squareSide/2
     val yEAST = squareSide/2
@@ -17,9 +17,10 @@ object MapGenerator extends App {
     val yWEST = squareSide/2
     val xWEST = 0
 
-    override def toString(): String = s"$isoValue"
+    override def toString(): String = s"$altitude"
 
     def getLines() = {
+      //do not change next two lines!
       val xPix = y*squareSide
       val yPix = x*squareSide
 
@@ -87,7 +88,8 @@ object MapGenerator extends App {
     var yWEST = None: Option[Int]
     var xWEST = None: Option[Int]*/
 
-    def apply(squareSide: Int, x: Int, y: Int, isoValue: Int): Cell = new Cell(squareSide, x, y, isoValue)
+    def apply(squareSide: Int, x: Int, y: Int, isoValue: Int, altitude: Double): Cell =
+      new Cell(squareSide, x, y, isoValue, altitude)
     /*def apply(_squareSide: Int): Unit = {
       squareSide = Some(_squareSide)
 
@@ -111,15 +113,19 @@ object MapGenerator extends App {
 
     //Cell(squareSide)
     val perlin = PerlinNoise(128)
-    val frequency = 0.02
+    val biomFrequency = 0.02
+    val terrainFrequency = 0.02
 
-    val points = Vector.tabulate(height+1, width+1)((x, y) => if(perlin.noise(x*frequency, y*frequency) >= 0.2) 1 else 0)
-    val map = Vector.tabulate(height, width)((x, y) => Cell(squareSide, x, y, calculateIsoValue(x, y)))
+    //point 1 is black point 0 is white
+    val points = Vector.tabulate(height+1, width+1)((x, y) => if(perlin.noise(x*biomFrequency, y*biomFrequency) >= 0.2) 1 else 0)
+    val map = Vector.tabulate(height, width)((x, y) =>
+      Cell(squareSide, x, y, calculateIsoValue(x, y), getAltitude(perlin.noise(x*terrainFrequency, y*terrainFrequency))))
 
     val GUI = new MapGUI(windowWidth, windowHeight)
 
     addLines()
     addPolygons()
+    addRectangles()
     GUI.drawMap()
 
     override def toString(): String =
@@ -167,6 +173,16 @@ object MapGenerator extends App {
         }
       }))
     }
+
+    private def addRectangles():Unit = {
+      map.foreach(row => row.foreach(cell => {
+        val xPix = cell.y*squareSide
+        val yPix = cell.x*squareSide
+
+        GUI.addRectangle(xPix, yPix, squareSide, squareSide, cell.altitude)
+      }))
+    }
+
   }
 
   object Map {
@@ -182,6 +198,11 @@ object MapGenerator extends App {
 
   //calculate square isovalue from 16 possibilities
   val getIsoValue: (Int, Int, Int, Int) => Int = (a, b, c, d) => a*8 + b*4 + c*2 + d
+
+  //convert noise (in range [-1,1]) to altitude
+  val getAltitude = (noise: Double) => {
+    (noise+1)/2
+  }
 
   val map = Map(100, 120)
   //println(map)

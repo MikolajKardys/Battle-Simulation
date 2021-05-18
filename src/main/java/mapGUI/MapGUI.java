@@ -23,17 +23,20 @@ public class MapGUI extends JPanel {
     private final int windowHeight;
     LinkedList<Line> lines;
     LinkedList<Polygon> polygons;
+    LinkedList<MyRectangle> rectangles;
+
 
     public MapGUI(int windowWidth, int windowHeight) {
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
-        this.lines = new LinkedList<>();
-        this.polygons = new LinkedList<>();
+        lines = new LinkedList<>();
+        polygons = new LinkedList<>();
+        rectangles = new LinkedList<>();
     }
 
     public void addLine(int x1, int y1, int x2, int y2) {
         Line line = new Line(x1, y1, x2, y2);
-        this.lines.add(line);
+        lines.add(line);
     }
 
     public void addPolygon(Vector<Integer> xs, Vector<Integer> ys) {
@@ -41,7 +44,21 @@ public class MapGUI extends JPanel {
         Polygon poly = new Polygon();
         for(int i = 0; i < n; i++)
             poly.addPoint(xs.get(i), ys.get(i));
-        this.polygons.add(poly);
+        polygons.add(poly);
+    }
+
+    private class MyRectangle extends Rectangle {
+        private final double altitude;
+
+        public MyRectangle(int x, int y, int width, int height, double altitude) {
+            super(x, y, width, height);
+            this.altitude = altitude;
+        }
+    }
+
+    public void addRectangle(int x, int y, int width, int height, Double altitude) {
+        MyRectangle rect = new MyRectangle(x, y, width, height, altitude);
+        rectangles.add(rect);
     }
 
     public void drawMap() {
@@ -61,8 +78,8 @@ public class MapGUI extends JPanel {
         super.paintComponent(g);
         this.setSize(this.windowWidth, this.windowHeight);
         this.setLocation(0, 0);
-
-        Iterator<Line> lineIterator = this.lines.iterator();
+/*
+        Iterator<Line> lineIterator = lines.iterator();
         Line line;
         while(lineIterator.hasNext()) {
             line = lineIterator.next();
@@ -72,12 +89,21 @@ public class MapGUI extends JPanel {
         g.setColor(new Color(50, 255, 50));
         g.fillRect(0, 0, windowWidth, windowHeight);
 
-        Iterator<Polygon> polyIterator = this.polygons.iterator();
+        Iterator<Polygon> polyIterator = polygons.iterator();
         Polygon poly;
         while(polyIterator.hasNext()) {
             poly = polyIterator.next();
             g.setColor(new Color(0, 100, 0));
             g.fillPolygon(poly);
+        }*/
+
+        Iterator<MyRectangle> rectIterator = rectangles.iterator();
+        MyRectangle rect;
+        while(rectIterator.hasNext()) {
+            rect = rectIterator.next();
+            int c = (int)Math.round(rect.altitude*255);
+            g.setColor(new Color(0, c, 0));
+            g.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
     }
 
