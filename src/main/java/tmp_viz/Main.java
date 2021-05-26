@@ -6,51 +6,78 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 public class Main {
+    static final int side = 19;
+
     static class MyCanvas extends JComponent {
         private final int rows;
         private final int cols;
 
-        private final int[][] elements;
+        private final double[][] colors;
+        private final double[][] morale;
 
-        public MyCanvas(int rows, int cols){
+        private final JFrame window;
+
+        public MyCanvas(int rows, int cols) {
             this.rows = rows;
             this.cols = cols;
 
-            this.elements = new int [rows][cols];
+            this.colors = new double[rows][cols];
+            this.morale = new double[rows][cols];
 
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    this.elements[i][j] = -1;
+                    this.colors[i][j] = 0;
 
+            window = new JFrame();
+            window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            window.setBounds(rows, cols, (side + 1) * cols, (side + 1) * rows);
+            window.getContentPane().add(this);
+            window.setVisible(true);
         }
 
-        public void setElements(int [] xTab, int [] yTab, int [] values){
+        public void setElements(int[] xTab, int[] yTab, double[] values, double[] morale) {
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
-                    this.elements[i][j] = -1;
+                    this.colors[i][j] = 0;
 
             int len = xTab.length;
-            for (int i = 0; i < len; i++)
-                this.elements[xTab[i]][yTab[i]] = values[i];
+            for (int i = 0; i < len; i++){
+                this.colors[xTab[i]][yTab[i]] = values[i];
+                this.morale[xTab[i]][yTab[i]] = morale[i];
+            }
         }
 
         public void paint(Graphics g) {
-            int side = 30;
-
             int rows = this.rows;
-
             int cols = this.cols;
+
             int width = getSize().width;
             int height = getSize().height;
 
-            for (int i = 0; i < rows; i++){
-                for (int j = 0; j < cols; j++){
-                    if (this.elements[i][j] >= 0)
-                        g.setColor(Color.RED);
-                    else{
-                        g.setColor(Color.WHITE);
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < cols; j++) {
+                    double currColor = this.colors[i][j];
+                    Color fieldColor;
+                    int fade = (int)(255 * (1 - Math.sqrt(Math.abs(currColor))));
+                    if (currColor == 0)
+                        fieldColor = new Color(255, 255, 255);
+                    else {
+                        if (currColor > 0)
+                            fieldColor = new Color(255, fade, fade);
+                        else
+                            fieldColor = new Color(fade, fade, 255);
                     }
-                    g.fillRect(i * side, j * side, side, side);
+                    g.setColor(fieldColor);
+                    g.fillRect(j * side, i * side, side, side);
+
+                    if (currColor != 0){
+                        g.setColor(new Color(0, (int)(255 * morale[i][j]), 0));
+
+                        int [] x = {j * side, (j + 1) * side, j * side};
+                        int [] y = {i * side, (i + 1) * side, (i + 1) * side};
+                        Polygon tr = new Polygon(x, y, 3);
+                        g.fillPolygon(tr);
+                    }
                 }
             }
 
@@ -65,28 +92,15 @@ public class Main {
         }
     }
 
-    public static void main(String[] a) throws InterruptedException {
-        int rows = 20;
-        int cols = 20;
+    private final MyCanvas canvas;
 
-        JFrame window = new JFrame();
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setBounds(rows, cols, 30 * cols, 30 * rows);
+    public Main (int rows, int cols){
+        canvas = new MyCanvas(rows, cols);
+    }
 
-        MyCanvas canvas = new MyCanvas(rows, cols);
-        window.getContentPane().add(canvas);
-        window.setVisible(true);
+    public void repaint(int [] xCords, int [] yCords, double [] colors, double [] morale){
+        canvas.setElements(xCords, yCords, colors, morale);
 
-        int [] y = {5};
-        int [] values = {1};
-        for(int i = 0; i < 10; i++){
-            int [] x = {i + 5};
-
-            canvas.setElements(x, y, values);
-
-            window.repaint();
-
-            Thread.sleep(200);
-        }
+        canvas.window.repaint();
     }
 }

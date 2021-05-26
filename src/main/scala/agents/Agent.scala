@@ -1,61 +1,118 @@
 package agents
+import agents.Teams._
 
-class Agent(var posVector: Vector2D, var direction: Vector2D){
-  class Position (override val x: Double, override val y: Double) extends Vector2D(x, y){
-    def getVector(other: Position): Vector2D = {
-      Vector2D(this.x - other.x, this.y - other.y)
-    }
-    def getDistance(other: Position): Double = {
-      (this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y)
-    }
-
-  }
-  var position: Position = new Position(posVector.x, posVector.y)
-
+class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams){
 
   // Wartości które będą zmieniały się w zależności od typu jednostki
-  val range: Double = 1.5
+  var statistics: Map[String, Double] = Map(
+    "range" -> 1.5, "strength" -> 1, "maxHealth" -> 10, "attackCost" -> 5, "moveCost" -> 5, "maxMorale" -> 5
+  )
+  var health: Double = statistics("maxHealth")
+  var morale: Double = statistics("maxMorale")
 
-  val tokensMax: Int = 5      // Bazowa wartość; im szybsza jednostka tym wyższa ta wartość
-  var tokens: Int = 0
 
+  var flees: Boolean = false
+
+  var target: Agent = null
+  var targetedBy: List[Agent] = List[Agent]()
+
+  def pickTarget(enemies: List[Agent]): Unit = {
+    var targets = enemies.filter(agent => agent.health > 0)
+    if (targets.isEmpty){
+      target = null
+    }
+    else {
+      val proximity: Agent => Double = (other: Agent) => this.position.getDistance(other.position)
+      targets = targets.sortBy(proximity)
+
+      targetEnemy(targets.head)
+    }
+  }
+
+  def targetEnemy(enemy: Agent): Unit = {
+    target = enemy
+    enemy.targetedBy = enemy.targetedBy.appended(this)
+  }
+
+  def die(): Unit = {
+    for (agent <- targetedBy){
+      agent.target = null
+    }
+  }
 
   // Blok akcji
+  var tokens: Double = 0
   object ActionType extends Enumeration {
     type ActionType = Value
     val Fight, Brace, Flee = Value
   }
   import ActionType._
 
-  def chooseAction(): ActionType =  {  // TODO: Ma zależeć od morale
+  def chooseAction(): ActionType = {
+    if (morale < 0){
+      return Flee
+    }
     Fight
   }
-  def doAction(): Unit = {
-    if (tokens < tokensMax) {
-      tokens += 1
+
+  def doAction(enemy: Agent): Unit = {
+    if (tokens > 0) {
+      tokens -= 1
     }
     else {
-      val enemy = new Agent(position, direction)  // TODO: Najbliższy widoczny wrogi agent
-
-
-
+      flees = false
       chooseAction() match {
         case Fight =>
-
+          if (!attack(enemy)) {
+            move(enemy)
+          }
         case Flee =>
-          // TODO: Znajdź najbliższą scianę i uciekaj
+          move(null) match {
+            case true =>
+            case _ => attack(enemy)
+          }
+
         case Brace =>   //Nic nie rób; zachowujesz punkty akcji
       }
     }
   }
 
-  def attack(other: Agent): Unit = {
-    // TODO: Znajdź odpowiednią ilość obrażeń
+  def move(enemy : Agent = null): AnyVal ={
+    var allMoves = Engine.getMoves(position)
+    if (allMoves.nonEmpty) {
+      if (enemy != null) {
+        val getDist = (other: Vector2D) => enemy.position.getDistance(other)
+        allMoves = allMoves.sortWith(getDist(_) < getDist(_))
+
+        val tokenIncrease = position.getDistance(allMoves.head)
+        position = allMoves.head
+        tokens = statistics("moveCost") * tokenIncrease
+      }
+      else {
+        val getDist = (other: Vector2D) => this.target.position.getDistance(other)
+        allMoves = allMoves.sortWith(getDist(_) < getDist(_))
+
+        val tokenIncrease = position.getDistance(allMoves.last)
+        position = allMoves.last
+        tokens = statistics("moveCost") * tokenIncrease
+
+        if (Engine.onEdge(this)){
+          flees = true
+        }
+        return true
+      }
+    }
   }
 
-}
+  def attack(enemy: Agent): Boolean = {
+    if (position.getDistance(enemy.position) <= statistics("range")) {
+      enemy.health = Math.max(0, enemy.health - statistics("strength"))
 
+      enemy.morale -= statistics("strength")
 
-object Agent{
-  def apply(posVector2D: Vector2D, direction: Vector2D): Agent = new Agent(posVector2D, direction)
+      tokens = statistics("attackCost")
+      return true
+    }
+    false
+  }
 }
