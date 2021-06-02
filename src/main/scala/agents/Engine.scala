@@ -15,18 +15,25 @@ object Engine extends App {
 
   var agentList: List[Agent] = List[Agent]()
 
-  def getMoves(position: Vector2D): Seq[Vector2D] = {
+  def getFields(position: Vector2D): Seq[Vector2D] = {
     val thisX = position.x
     val thisY = position.y
 
-    val neighFields: Seq[Vector2D] =
-      for (i <- (-1).to(1) if thisX + i >= 0 && thisX + i < rows;
+    for (i <- (-1).to(1) if thisX + i >= 0 && thisX + i < rows;
            j <- (-1).to(1) if thisY + j >= 0 && thisY + j < cols && (i != 0 || j != 0))
-          yield Vector2D(thisX + i, thisY + j)
+        yield Vector2D(thisX + i, thisY + j)
+  }
+
+  def getMoves(position: Vector2D): Seq[Vector2D] = {
+    val neighFields = getFields(position)
 
     val fieldsTaken = for (agent <- agentList if agent.health  > 0) yield agent.position
 
     for (position <- neighFields if !fieldsTaken.contains(position)) yield position
+  }
+
+  def getSurrounding(position: Vector2D, radius: Double): List[Agent] = {
+    for (agent <- agentList if agent.health > 0 && agent.position.getDistance(position) <= radius) yield agent
   }
 
   def onEdge(agent: Agent): Boolean = {
@@ -45,7 +52,7 @@ object Engine extends App {
     val blueFieldList = Random.shuffle((for (i <- 0.until(rows); j <- (2 * cols / 3).until(cols))
       yield (i, j)).toList).slice(0, blues)
     for (field <- blueFieldList) {
-      blueTeam = blueTeam.appended(Cavalry(Vector2D(field._1, field._2), Vector2D(0, 0), Blue))
+      blueTeam = blueTeam.appended(Infantry(Vector2D(field._1, field._2), Vector2D(0, 0), Blue))
     }
 
     agentList = agentList.appendedAll(redTeam).appendedAll(blueTeam)
@@ -55,21 +62,21 @@ object Engine extends App {
 
   def run(reds: Int, blues: Int): Unit = {
     repaintMap()
-
     val teams = setupLists(reds, blues)
 
-    for (_ <- 1.to(1000)){
-      for (agent <- agentList)
-        if (agent.flees)
+    for (_ <- 1 to 2000){
+      for (agent <- agentList)   //  Wszyscy którzy chcą uciec, uciekają
+        if (agent.flees) {
           agent.die()
-      agentList = agentList.filter(agent => !agent.flees)
+        }
+
+      agentList = agentList.filter(agent => !agent.flees)           //Usuwamy z list wszystkich którzy uciekli
       teams("reds") = teams("reds").filter(agent => !agent.flees)
       teams("blues") = teams("blues").filter(agent => !agent.flees)
 
       agentList = Random.shuffle(agentList)
-
-      for (agent <- agentList){
-        if (agent.health  > 0) {
+      for (agent <- agentList){                         //Iteracja dla każdego agenta, który jeszcze żyje
+        if (agent.health > 0) {
           var enemies: List[Agent] = null
           agent.team match {
             case Red => enemies = teams("blues")
@@ -77,14 +84,12 @@ object Engine extends App {
           }
 
           if (enemies.isEmpty) {
-            repaintMap()
             println(s"${agent.team.toString} wygrywa!")
             return
           }
 
           agent.pickTarget(enemies)
           if (agent.target == null){
-            repaintMap()
             println(s"${agent.team.toString} wygrywa!")
             return
           }
@@ -93,13 +98,14 @@ object Engine extends App {
         }
       }
 
-      // Remove the dead
       for (agent <- agentList)
-        if (agent.health == 0)
+        if (agent.health == 0) {
           agent.die()
-      agentList = agentList.filter(agent => agent.health  > 0)
-      teams("reds") = teams("reds").filter(agent => agent.health  > 0)
-      teams("blues") = teams("blues").filter(agent => agent.health  > 0)
+        }
+
+      agentList = agentList.filter(agent => agent.health > 0)
+      teams("reds") = teams("reds").filter(agent => agent.health > 0)
+      teams("blues") = teams("blues").filter(agent => agent.health > 0)
 
 
       //Handle visualization
@@ -129,9 +135,9 @@ object Engine extends App {
     canvas.repaint(xs, ys, color, morale)
   }
 
-  val rows = 30
-  val cols = 60
+  val rows = 50
+  val cols = 70
   import tmp_viz.Main
   val canvas = new Main(rows, cols)
-  run(50, 2)
+  run(200, 200)
 }

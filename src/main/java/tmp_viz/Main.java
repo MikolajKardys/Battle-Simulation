@@ -6,7 +6,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 
 public class Main {
-    static final int side = 19;
+    static final int side = 10;
 
     static class MyCanvas extends JComponent {
         private final int rows;
