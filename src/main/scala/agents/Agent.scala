@@ -1,107 +1,87 @@
 package agents
 import agents.Teams._
 
+import scala.util.Random
+
 class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
+  object ActionType extends Enumeration {
+    type ActionType = Value
+    val Fight, Brace, Flee = Value
+  }
+
+  import ActionType._
 
   // Wartości które będą zmieniały się w zależności od typu jednostki
   var statistics: Map[String, Double] = Map(
-    "range" -> 1.5, "strength" -> 1.0, "maxHealth" -> 10, "attackCost" -> 5, "moveCost" -> 5, "maxMorale" -> 5,
-    "value" -> 0.5
+    "range" -> 1.5, "strength" -> 1.0, "maxHealth" -> 20, "attackCost" -> 5, "moveCost" -> 5, "maxMorale" -> 10,
+    "value" -> 1
   )
 
-  ///  Target block  /////////////////////////////////////////////////
+
+  var teammates: List[Agent] = List[Agent]()
+  var enemies: List[Agent] = List[Agent]()
+
   var target: Agent = null
-  var targetedBy: List[Agent] = List[Agent]()
+  var hitBy: List[Agent] = List[Agent]()
 
-  def pickTarget(enemies: List[Agent]): Unit = {
-    var targets = enemies.filter(agent => agent.health > 0)
-    if (targets.nonEmpty) {
-      val proximity: Agent => Double = (other: Agent) => position.getDistance(other.position)
-      targets = targets.sortBy(proximity)
-
-      if (target == null) {
-          targetEnemy(targets.head)
-      }
-      else if (position.getDistance(target.position) > statistics("range")) {
-        targets = targets.filter(agent => position.getDistance(agent.position) < position.getDistance(target.position))
-
-        if (targets.nonEmpty){
-          targetEnemy(targets.head)
-        }
-      }
-    }
-  }
-
-  def targetEnemy(enemy: Agent): Unit = {
-    target = enemy
-    enemy.targetedBy = enemy.targetedBy.appended(this)
-  }
-
-  ////////////////////////////////////////////////////////////////////
-
-  ///  Fighting block  ///////////////////////////////////////////////
   var health: Double = statistics("maxHealth")
   var lastHealth: Double = statistics("maxHealth") // Do liczenia morale
 
-  def attack(enemy: Agent): Boolean = {
-    val distance = position.getDistance(enemy.position)
-    if (distance <= statistics("range")) {
-      enemy.health -= statistics("strength") // uderzenie
-      enemy.health = Math.max(0, enemy.health)
+  def criteriaVal(enemy: Agent): Double = { //TODO: Zasady wyboru
+    1 / position.getDistance(enemy.position)
+  }
 
-      if (enemy.health > 0) {            // counterattack agains last player that had hit us
-        if (enemy.target != null){
-          enemy.target.targetedBy = enemy.target.targetedBy.filter(agent => agent != enemy)
-        }
-        enemy.target = this
-        targetedBy = targetedBy.appended(enemy)
-      }
+  def attack(enemies: List[Agent]): Boolean = {
+    var inRange = enemies.filter((agent: Agent) => position.getDistance(agent.position) <= statistics("range"))
 
-      tokens = statistics("attackCost")
+    if (inRange.nonEmpty){
+      inRange = inRange.sortBy(criteriaVal)
+
+      val posTargets = inRange.filter((agent : Agent) => criteriaVal(inRange.last) == criteriaVal(agent))
+
+      target = posTargets(Random.nextInt(posTargets.length))
+
+      val hitStrength = statistics("strength")  //TODO: Terrain advantage
+
+      target.health -= hitStrength
+      morale += target.statistics("value")
+
+      if (target.health <= 0)
+        morale += target.statistics("value")
+
+      target.hitBy = target.hitBy.appended(this)
+
+      val attackCost = statistics("attackCost")  //TODO: Terrain advantage
+
+      tokens += attackCost
+
       return true
     }
     false
   }
-
-  def die(): Unit = {
-    for (agent <- targetedBy){
-      agent.target = null
-    }
-  }
   ////////////////////////////////////////////////////////////////////
 
   // Move block
-  def move(enemy : Agent = null): Boolean ={
-    var allMoves = Engine.getMoves(position)
-    if (allMoves.nonEmpty) {
-      val getDist = (other: Vector2D) => this.target.position.getDistance(other)
-      allMoves = allMoves.sortBy(getDist(_))
+  def move(moveType: ActionType): Boolean ={
+    val criteria: Vector2D => Double = moveType match {
+      case Fight => (posMove: Vector2D) => enemies.last.position.getDistance(posMove)
+      case Flee => (posMove: Vector2D) => (for (enemy <- enemies) yield 1 / enemy.position.getDistance(posMove)).sum
+    }
 
-      if(enemy != null && getDist(position) >= getDist(allMoves.head)){
-        val getMatesNumber : Vector2D => Int = pos =>
-          (for (agent <- Engine.getSurrounding(pos, 1.5) if agent.team == team) yield agent).size
+    var moves = Engine.getMoves(position)
 
-        allMoves = allMoves.filter(pos => getMatesNumber(pos) > 1 || getMatesNumber(pos) >= getMatesNumber(position))
+    if (moves.nonEmpty){
+      moves = moves.sortBy(criteria)
 
-        if (allMoves.nonEmpty) {
-          val tokenIncrease = position.getDistance(allMoves.head)
-          position = allMoves.head
-          tokens = statistics("moveCost") * tokenIncrease
-          return true
-        }
-      }
-      else if(enemy == null && getDist(position) <= getDist(allMoves.last)){
-        val tokenIncrease = position.getDistance(allMoves.last)
-        position = allMoves.last
-        tokens = statistics("moveCost") * tokenIncrease
+      if (criteria(position) < criteria(moves.last)){
+        position = moves.head
 
-        if (Engine.onEdge(this))
-          flees = true
+        val moveCost = statistics("moveCost")  //TODO: Terrain advantage
+
+        tokens += moveCost
 
         return true
       }
-
-      return false
     }
     false
   }
@@ -112,60 +92,84 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
   var tokens: Double = 0
 
-  object ActionType extends Enumeration {
-    type ActionType = Value
-    val Fight, Brace, Flee = Value
-  }
+  def calcMorale(allAgents: List[Agent]): Double = {
+    var newMorale = morale
 
-  import ActionType._
+    newMorale -= (for (agent <- hitBy) yield agent.statistics("value")).sum * Math.sqrt(hitBy.length)
 
-  def calcMorale(): Double = {
-    val healthDrop = lastHealth - health
-    lastHealth = health
-    morale -= healthDrop
-
-    val surrounding = Engine.getSurrounding(position, 2.5)
+    val surrounding = allAgents.filter((agent: Agent) => position.getDistance(agent.position) <= 3)
     for (agent <- surrounding){
       if(agent.team == team)
-        morale += agent.statistics("value") * agent.morale.sign
+        newMorale += agent.statistics("value") / position.getDistance(agent.position)
       else {
-        morale -= agent.statistics("value") * agent.morale.sign
+        newMorale -= agent.statistics("value") / position.getDistance(agent.position)
       }
     }
-    Math.min(morale, statistics("maxMorale"))
+
+    Math.min(newMorale, statistics("maxMorale"))
   }
 
-  def chooseAction(): ActionType = {
-    if (morale < 0) {
+  def chooseAction(): ActionType = {  //Defaultowe wybieranie akcji;
+    if (morale < 0)
       return Flee
-    }
     Fight
   }
 
-  def doAction(enemy: Agent): Unit = {
+  def doAction(allAgents: List[Agent]): Unit = {
     if (tokens > 0) {
       tokens -= 1
     }
     else {
       flees = false
-      morale = calcMorale()
+
+      enemies = List[Agent]()
+      teammates = List[Agent]()
+      for (agent <- allAgents){
+        if (agent.team != team)
+          enemies = enemies.appended(agent)
+        else
+          teammates = teammates.appended(agent)
+      }
+
+      if (enemies.isEmpty)
+        return
+
+      morale = calcMorale(allAgents)
+
       chooseAction() match {
         case Fight =>
-          if (!attack(enemy))
-            move(enemy)
+          if (!attack(enemies)) {
+            enemies = enemies.sortBy(criteriaVal)
+            if (!move(Fight))
+              brace()
+          }
 
         case Flee =>
-          if (!move(null))
-            attack(enemy)
-          else
-            morale += statistics("value") / 2
+          if (!move(Flee)){
+            val inRange = enemies.filter((agent: Agent) =>
+              position.getDistance(agent.position) <= statistics("range"))
+
+            if (inRange.isEmpty)
+              brace()
+
+            attack(inRange)
+          }
+          if (Engine.onEdge(this))
+            flees = true
 
         case Brace => //Nic nie rób; zachowujesz punkty akcji
-            morale += statistics("value")
+           brace()
       }
+
+      hitBy = List[Agent]()
     }
   }
+  def brace(): Unit = {
+
+  }
 }
+
+
 
 
 

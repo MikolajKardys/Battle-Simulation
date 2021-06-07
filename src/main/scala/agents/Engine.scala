@@ -65,48 +65,31 @@ object Engine extends App {
     val teams = setupLists(reds, blues)
 
     for (_ <- 1 to 2000){
-      for (agent <- agentList)   //  Wszyscy którzy chcą uciec, uciekają
-        if (agent.flees) {
-          agent.die()
-        }
-
-      agentList = agentList.filter(agent => !agent.flees)           //Usuwamy z list wszystkich którzy uciekli
-      teams("reds") = teams("reds").filter(agent => !agent.flees)
-      teams("blues") = teams("blues").filter(agent => !agent.flees)
+      if (teams("blues").isEmpty) {
+        println("Czerwoni wygrywają!")
+        repaintMap()
+        return
+      }
+      else if (teams("reds").isEmpty) {
+        println("Niebiescy wygrywają!")
+        repaintMap()
+        return
+      }
 
       agentList = Random.shuffle(agentList)
       for (agent <- agentList){                         //Iteracja dla każdego agenta, który jeszcze żyje
         if (agent.health > 0) {
-          var enemies: List[Agent] = null
-          agent.team match {
-            case Red => enemies = teams("blues")
-            case Blue => enemies = teams("reds")
-          }
+          val agentsInView = for (other <- agentList if other.health > 0 && other != agent) yield other
 
-          if (enemies.isEmpty) {
-            println(s"${agent.team.toString} wygrywa!")
-            return
-          }
+          //agentsInView = agentsInView.filter((other: Agent) => Terrain.canSee(agent.position, other.position))//TODO: Widoczność
 
-          agent.pickTarget(enemies)
-          if (agent.target == null){
-            println(s"${agent.team.toString} wygrywa!")
-            return
-          }
-
-          agent.doAction(agent.target)
+          agent.doAction(agentsInView)
         }
       }
 
-      for (agent <- agentList)
-        if (agent.health == 0) {
-          agent.die()
-        }
-
-      agentList = agentList.filter(agent => agent.health > 0)
-      teams("reds") = teams("reds").filter(agent => agent.health > 0)
-      teams("blues") = teams("blues").filter(agent => agent.health > 0)
-
+      agentList = agentList.filter(agent => agent.health > 0 && !agent.flees)
+      teams("reds") = teams("reds").filter(agent => agent.health > 0 && !agent.flees)
+      teams("blues") = teams("blues").filter(agent => agent.health > 0 && !agent.flees)
 
       //Handle visualization
       repaintMap()
@@ -135,9 +118,9 @@ object Engine extends App {
     canvas.repaint(xs, ys, color, morale)
   }
 
-  val rows = 50
-  val cols = 70
+  val rows = 60
+  val cols = 100
   import tmp_viz.Main
   val canvas = new Main(rows, cols)
-  run(200, 200)
+  run(100, 100)
 }
