@@ -1,7 +1,5 @@
 package agents
 
-import mapGenerator.MapGenerator.getRandomBit
-
 import scala.util.Random
 import scala.collection.mutable
 
@@ -149,5 +147,7 @@ object Engine extends App {
   import mapGenerator.MapGenerator.Map
   val canvas = new Map(cols, rows)
 
-  run(50, 50)
+  import mapGenerator.RoadGenerator
+  new RoadGenerator(70, 60)
+  //run(50, 50)
 }

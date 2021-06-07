@@ -12,6 +12,7 @@ object MapGenerator{
   class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int, val altitude: Double, var denseForestIsoValue: Int) {
     val isDenseForest: Boolean = if(MapConst.inForestIsoValue.contains(denseForestIsoValue)) true else false
     val isSparseForest: Boolean = if(!isDenseForest && MapConst.inForestIsoValue.contains(isoValue)) true else false
+    val isRiver: Boolean = true
 
     val yNORTH = 0
     val xNORTH: Int = squareSide/2
@@ -225,10 +226,9 @@ object MapGenerator{
 
       var visibility: Double = 0
       visionLine.foreach{
-        case (x: Int, y: Int) => {
+        case (x: Int, y: Int) =>
           if (map(x)(y).isDenseForest) visibility -= 2
           else if (map(x)(y).isSparseForest) visibility -= 1
-        }
         case _ =>
       }
 
@@ -275,7 +275,7 @@ object MapGenerator{
   }
 
   //get random bit value
-  val getRandomBit = () =>  {
+  val getRandomBit: () => Int = () =>  {
     //should exist only one
     val rand = scala.util.Random
     if(rand.nextInt(100) > 50) 0 else 1
@@ -285,7 +285,7 @@ object MapGenerator{
   val getIsoValue: (Int, Int, Int, Int) => Int = (a, b, c, d) => a*8 + b*4 + c*2 + d
 
   //convert noise (in range [-1,1]) to altitude
-  val getAltitude = (noise: Double) => {
+  val getAltitude: Double => Double = (noise: Double) => {
     (noise+1)/2
   }
 

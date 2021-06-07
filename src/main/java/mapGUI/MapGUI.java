@@ -141,20 +141,12 @@ public class MapGUI extends JPanel {
         while (rectIterator.hasNext()) {
             rect = rectIterator.next();
 
-            if(rect.altitude > 0.8) {
-                rel = 5*(rect.altitude-0.8);
+            rel = rect.altitude;
 
-                red = 255;
-                green = 255-(int)Math.round(rel * 255);
-                blue = 0;
-            }
-            else {
-                rel = rect.altitude * 1.25;
+            red = (int)Math.round(rel * 255);
+            green = 255;
+            blue = 0;
 
-                red = (int)Math.round(rel * 255);
-                green = 255;
-                blue = 0;
-            }
             g.setColor(new Color(red, green, blue));
             g.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
