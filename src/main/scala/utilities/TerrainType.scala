@@ -1,6 +1,6 @@
 package utilities
 
 object TerrainType extends Enumeration {
-  type Terrain = Value
+  type TerrainType = Value
   val SparseForest, DenseForest, Meadow = Value
 }
