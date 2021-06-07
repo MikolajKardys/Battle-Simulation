@@ -137,7 +137,7 @@ object MapGenerator extends App {
         getAltitude(terrainPerlin.noise(x*MapConst.terrainFrequency, y*MapConst.terrainFrequency)),
         calculateIsoValue(x, y, MapConst.denseForestThresh)))
 
-    val GUI = new MapGUI(windowWidth, windowHeight)
+    val GUI = new MapGUI(windowWidth, windowHeight, squareSide)
 
     addPoints()
     addLines()
@@ -211,7 +211,7 @@ object MapGenerator extends App {
     }
 
     import utilities.TerrainType._
-    override def getTerrainType(position: Vector2D): Terrain = {
+    override def getTerrainType(position: Vector2D): TerrainType = {
       if(map(position.x)(position.y).isSparseForest)
         SparseForest
       else if(map(position.x)(position.y).isSparseForest)
@@ -263,6 +263,10 @@ object MapGenerator extends App {
         Math.E
       else
         1/Math.E
+    }
+
+    override def paintMap(xs: Array[Int], ys: Array[Int], health: Array[Double], typeA: Array[Int], morale: Array[Double]): Unit = {
+      GUI.paintMap(xs, ys, health, typeA, morale)
     }
   }
 
