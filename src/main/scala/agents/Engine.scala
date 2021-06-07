@@ -1,5 +1,7 @@
 package agents
 
+import mapGenerator.MapGenerator.getRandomBit
+
 import scala.util.Random
 import scala.collection.mutable
 
@@ -133,7 +135,7 @@ object Engine extends App {
       ys(index) = agent.position.y
       color(index) = agent.team.id * agent.health / agent.statistics("maxHealth")
       morale(index) = Math.min(1, Math.max(0, agent.morale / agent.statistics("maxMorale")))
-      troopType(index) = 0
+      troopType(index) = 3
 
       index += 1
     }
@@ -141,11 +143,11 @@ object Engine extends App {
     canvas.paintMap(xs, ys, color, troopType, morale)
   }
 
-  val rows = 100
-  val cols = 70
+  val rows = 75
+  val cols = 50
 
   import mapGenerator.MapGenerator.Map
   val canvas = new Map(cols, rows)
 
-  run(200, 200)
+  run(50, 50)
 }

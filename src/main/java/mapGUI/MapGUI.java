@@ -169,80 +169,68 @@ public class MapGUI extends JPanel {
                 g.fillPolygon(poly);
             }
 
+            Color teamColor, moraleColor;
+
             for (Agent agent : agents){
                 int colorMag = (int)(255 * (1 - Math.pow(Math.abs(agent.color), 0.5)));
+                if(agent.color < 0)
+                    teamColor = new Color(255, colorMag, colorMag);
+                else
+                    teamColor = new Color(colorMag, colorMag,255);
+                moraleColor = new Color((int)(255*agent.morale), (int)(255*agent.morale), (int)(255*agent.morale));
+
                 switch(agent.typeA) {
                     case 0: {
-                        if(agent.color < 0) {
-                            color = new Color(255, colorMag, colorMag);
-                        }
-                        else {
-                            color = new Color(colorMag, colorMag,255);
-                        }
-
-                        g.setColor(color);
+                        g.setColor(teamColor);
                         g.fillRect(agent.x * squareSide, agent.y * squareSide, squareSide, squareSide);
 
-                        int [] x = {agent.x * squareSide, (agent.x+1) * squareSide, agent.x * squareSide};
-                        int [] y = {agent.y * squareSide, (agent.y+1) * squareSide, (agent.y+1) * squareSide};
-                        Polygon tr = new Polygon(x, y, 3);
+                        int [] xTr1 = {agent.x * squareSide, (agent.x+1) * squareSide, agent.x * squareSide};
+                        int [] yTr1 = {agent.y * squareSide, (agent.y+1) * squareSide, (agent.y+1) * squareSide};
+                        Polygon tr1 = new Polygon(xTr1, yTr1, 3);
 
-                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
-                        g.setColor(color);
-
-                        g.fillPolygon(tr);
+                        g.setColor(moraleColor);
+                        g.fillPolygon(tr1);
 
                         break;
                     }
                     case 1:
-                        if(agent.color < 0) {
-                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
-                        }
-                        else {
-                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
-                        }
-                        g.setColor(color);
-                        g.fillOval(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2);
+                        g.setColor(teamColor);
+                        g.fillOval(agent.x * squareSide, agent.y * squareSide, squareSide, squareSide);
 
-
-                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
-                        g.setColor(color);
-
-                        g.fillArc(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2, 0, 180);
+                        g.setColor(moraleColor);
+                        g.fillArc(agent.x * squareSide, agent.y * squareSide, squareSide, squareSide, 0, 180);
 
                         break;
                     case 2:
-                        if(agent.color < 0) {
-                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
-                        }
-                        else {
-                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
-                        }
-                        g.setColor(color);
-                        g.fillOval(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2);
+                        int [] xKw = {agent.x * squareSide + squareSide/2, (agent.x+1) * squareSide, agent.x * squareSide + squareSide/2, agent.x * squareSide};
+                        int [] yKw = {agent.y * squareSide, agent.y * squareSide + squareSide/2, (agent.y+1) * squareSide, agent.y * squareSide + squareSide/2};
+                        Polygon kw = new Polygon(xKw, yKw, 4);
 
+                        g.setColor(teamColor);
+                        g.fillPolygon(kw);
 
-                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
-                        g.setColor(color);
+                        int [] xTr2 = {agent.x * squareSide + squareSide/2, (agent.x+1) * squareSide, agent.x * squareSide + squareSide/2};
+                        int [] yTr2 = {agent.y * squareSide, agent.y * squareSide + squareSide/2, (agent.y+1) * squareSide};
+                        Polygon tr2 = new Polygon(xTr2, yTr2, 3);
 
-                        g.fillArc(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2, 0, 180);
+                        g.setColor(moraleColor);
+                        g.fillPolygon(tr2);
 
                         break;
                     case 3:
-                        if(agent.color < 0) {
-                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
-                        }
-                        else {
-                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
-                        }
-                        g.setColor(color);
-                        g.fillOval(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2);
+                        int [] xTr3 = {agent.x * squareSide, agent.x * squareSide, (agent.x+1) * squareSide};
+                        int [] yTr3 = {agent.y * squareSide, (agent.y+1) * squareSide, agent.y * squareSide + squareSide/2};
+                        Polygon tr3 = new Polygon(xTr3, yTr3, 3);
 
+                        g.setColor(teamColor);
+                        g.fillPolygon(tr3);
 
-                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
-                        g.setColor(color);
+                        int [] xTr4 = {agent.x * squareSide, agent.x * squareSide, (agent.x+1) * squareSide};
+                        int [] yTr4 = {agent.y * squareSide, agent.y * squareSide + squareSide/2, agent.y * squareSide + squareSide/2};
+                        Polygon tr4 = new Polygon(xTr4, yTr4, 3);
 
-                        g.fillArc(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2, 0, 180);
+                        g.setColor(moraleColor);
+                        g.fillPolygon(tr4);
 
                         break;
                     default:

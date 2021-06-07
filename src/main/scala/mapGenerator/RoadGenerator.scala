@@ -1,8 +1,5 @@
 package mapGenerator
 
 class RoadGenerator {
-  
-
-
 
 }
