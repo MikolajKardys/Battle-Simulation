@@ -5,13 +5,13 @@ import java.awt.*;
 import java.util.*;
 
 public class MapGUI extends JPanel {
-    private class Line {
+    private class MyLine {
         private final int x1;
         private final int y1;
         private final int x2;
         private final int y2;
 
-        public Line(int x1, int y1, int x2, int y2) {
+        public MyLine(int x1, int y1, int x2, int y2) {
             this.x1 = x1;
             this.y1 = y1;
             this.x2 = x2;
@@ -40,21 +40,43 @@ public class MapGUI extends JPanel {
         }
     }
 
+    private class Agent {
+        private final int x;
+        private final int y;
+
+        private final double color;
+        private final int typeA;
+        private final double morale;
+
+        public Agent(int x, int y, double color, int typeA, double morale) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.typeA = typeA;
+            this.morale = morale;
+        }
+    }
+
     private final int windowWidth;
     private final int windowHeight;
+    private int squareSide;
     LinkedList<MyPoint> points;
-    LinkedList<Line> lines;
+    LinkedList<MyLine> lines;
     LinkedList<Polygon> polygons;
     LinkedList<MyRectangle> rectangles;
+    LinkedList<Agent> agents;
     private boolean biom = true;
 
-    public MapGUI(int windowWidth, int windowHeight) {
+    public MapGUI(int windowWidth, int windowHeight, int squareSide) {
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
+        this.squareSide = squareSide;
+
         points = new LinkedList<>();
         lines = new LinkedList<>();
         polygons = new LinkedList<>();
         rectangles = new LinkedList<>();
+        agents = new LinkedList<>();
     }
 
     public void addPoint(int x, int y, int v) {
@@ -63,7 +85,7 @@ public class MapGUI extends JPanel {
     }
 
     public void addLine(int x1, int y1, int x2, int y2) {
-        Line line = new Line(x1, y1, x2, y2);
+        MyLine line = new MyLine(x1, y1, x2, y2);
         lines.add(line);
     }
 
@@ -91,6 +113,20 @@ public class MapGUI extends JPanel {
 
         this.setLayout(null);
         frame.setVisible(true);
+    }
+
+    public void paintMap(int[] xs, int[] ys, double[] colors, int[] typeA, double[] morale) {
+        agents.clear();
+
+        int agentNum = xs.length;
+        Agent agent;
+        for(int i = 0; i < agentNum; i++) {
+            if(colors[i] != 0) {
+                agent = new Agent(xs[i], ys[i], colors[i], typeA[i], morale[i]);
+                agents.add(agent);
+            }
+        }
+        repaint();
     }
 
     @Override protected void paintComponent(Graphics g) {
@@ -131,6 +167,87 @@ public class MapGUI extends JPanel {
                 poly = polyIterator.next();
                 g.setColor(color);
                 g.fillPolygon(poly);
+            }
+
+            for (Agent agent : agents){
+                int colorMag = (int)(255 * (1 - Math.pow(Math.abs(agent.color), 0.5)));
+                switch(agent.typeA) {
+                    case 0: {
+                        if(agent.color < 0) {
+                            color = new Color(255, colorMag, colorMag);
+                        }
+                        else {
+                            color = new Color(colorMag, colorMag,255);
+                        }
+
+                        g.setColor(color);
+                        g.fillRect(agent.x * squareSide, agent.y * squareSide, squareSide, squareSide);
+
+                        int [] x = {agent.x * squareSide, (agent.x+1) * squareSide, agent.x * squareSide};
+                        int [] y = {agent.y * squareSide, (agent.y+1) * squareSide, (agent.y+1) * squareSide};
+                        Polygon tr = new Polygon(x, y, 3);
+
+                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
+                        g.setColor(color);
+
+                        g.fillPolygon(tr);
+
+                        break;
+                    }
+                    case 1:
+                        if(agent.color < 0) {
+                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
+                        }
+                        else {
+                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
+                        }
+                        g.setColor(color);
+                        g.fillOval(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2);
+
+
+                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
+                        g.setColor(color);
+
+                        g.fillArc(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2, 0, 180);
+
+                        break;
+                    case 2:
+                        if(agent.color < 0) {
+                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
+                        }
+                        else {
+                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
+                        }
+                        g.setColor(color);
+                        g.fillOval(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2);
+
+
+                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
+                        g.setColor(color);
+
+                        g.fillArc(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2, 0, 180);
+
+                        break;
+                    case 3:
+                        if(agent.color < 0) {
+                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
+                        }
+                        else {
+                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
+                        }
+                        g.setColor(color);
+                        g.fillOval(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2);
+
+
+                        color = new Color((int)(255*agent.morale),(int)(255*agent.morale),(int)(255*agent.morale));
+                        g.setColor(color);
+
+                        g.fillArc(agent.x * squareSide + squareSide/2, agent.y * squareSide + squareSide/2, squareSide/2, squareSide/2, 0, 180);
+
+                        break;
+                    default:
+                        break;
+                }
             }
 
             /*Iterator<MyPoint> pointIterator = points.iterator();

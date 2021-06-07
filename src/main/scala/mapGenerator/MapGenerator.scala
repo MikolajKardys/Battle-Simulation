@@ -8,7 +8,7 @@ import java.util
   Map generator for battle simulation.
 */
 
-object MapGenerator extends App {
+object MapGenerator{
   class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int, val altitude: Double, var denseForestIsoValue: Int) {
     val isDenseForest: Boolean = if(MapConst.inForestIsoValue.contains(denseForestIsoValue)) true else false
     val isSparseForest: Boolean = if(!isDenseForest && MapConst.inForestIsoValue.contains(isoValue)) true else false
@@ -137,7 +137,7 @@ object MapGenerator extends App {
         getAltitude(terrainPerlin.noise(x*MapConst.terrainFrequency, y*MapConst.terrainFrequency)),
         calculateIsoValue(x, y, MapConst.denseForestThresh)))
 
-    val GUI = new MapGUI(windowWidth, windowHeight)
+    val GUI = new MapGUI(windowWidth, windowHeight, squareSide)
 
     addPoints()
     addLines()
@@ -264,6 +264,10 @@ object MapGenerator extends App {
       else
         1/Math.E
     }
+
+    override def paintMap(xs: Array[Int], ys: Array[Int], health: Array[Double], typeA: Array[Int], morale: Array[Double]): Unit = {
+      GUI.paintMap(xs, ys, health, typeA, morale)
+    }
   }
 
   object Map {
@@ -328,6 +332,4 @@ object MapGenerator extends App {
     line = line :+ (x2, y2)
     line
   }
-
-  val map = Map(100, 120)
 }
