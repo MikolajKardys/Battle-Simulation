@@ -13,10 +13,9 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
   // Wartości które będą zmieniały się w zależności od typu jednostki
   var statistics: Map[String, Double] = Map(
-    "range" -> 1.5, "strength" -> 1.0, "maxHealth" -> 20, "attackCost" -> 5, "moveCost" -> 5, "maxMorale" -> 10,
-    "value" -> 1
+    "range" -> 1.5, "strength" -> 5.0, "maxHealth" -> 20, "attackCost" -> 5, "moveCost" -> 5, "maxMorale" -> 10,
+    "value" -> 3
   )
-
 
   var teammates: List[Agent] = List[Agent]()
   var enemies: List[Agent] = List[Agent]()
@@ -27,8 +26,15 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   var health: Double = statistics("maxHealth")
   var lastHealth: Double = statistics("maxHealth") // Do liczenia morale
 
-  def criteriaVal(enemy: Agent): Double = { //TODO: Zasady wyboru
-    1 / position.getDistance(enemy.position)
+  def criteriaVal(enemy: Agent): Double = {
+    var value = 1 / position.getDistance(enemy.position)
+    if (hitBy.contains(enemy)){
+      value *= 4
+    }
+    if (health > enemy.health){
+      value *= 2
+    }
+    value * Math.sqrt(enemy.hitBy.length + 1)
   }
 
   def attack(enemies: List[Agent]): Boolean = {
@@ -62,13 +68,16 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   ////////////////////////////////////////////////////////////////////
 
   // Move block
-  def move(moveType: ActionType): Boolean ={
+  def move(moveType: ActionType, preMoveTab: Seq[Vector2D] = null): Boolean ={
     val criteria: Vector2D => Double = moveType match {
       case Fight => (posMove: Vector2D) => enemies.last.position.getDistance(posMove)
       case Flee => (posMove: Vector2D) => (for (enemy <- enemies) yield 1 / enemy.position.getDistance(posMove)).sum
     }
 
-    var moves = Engine.getMoves(position)
+    var moves: Seq[Vector2D] = preMoveTab
+    if (moves == null) {
+      moves = Engine.getMoves(position)
+    }
 
     if (moves.nonEmpty){
       moves = moves.sortBy(criteria)
@@ -97,12 +106,12 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
     newMorale -= (for (agent <- hitBy) yield agent.statistics("value")).sum * Math.sqrt(hitBy.length)
 
-    val surrounding = allAgents.filter((agent: Agent) => position.getDistance(agent.position) <= 3)
+    val surrounding = allAgents.filter((agent: Agent) => position.getDistance(agent.position) <= 5)
     for (agent <- surrounding){
       if(agent.team == team)
-        newMorale += agent.statistics("value") / position.getDistance(agent.position)
+        newMorale += agent.morale.sign * agent.statistics("value") / position.getDistance(agent.position)
       else {
-        newMorale -= agent.statistics("value") / position.getDistance(agent.position)
+        newMorale -= agent.morale.sign * agent.statistics("value") / position.getDistance(agent.position)
       }
     }
 

@@ -211,7 +211,7 @@ object MapGenerator extends App {
     }
 
     import utilities.TerrainType._
-    override def getTerrainType(position: Vector2D): Terrain = {
+    override def getTerrainType(position: Vector2D): TerrainType = {
       if(map(position.x)(position.y).isSparseForest)
         SparseForest
       else if(map(position.x)(position.y).isSparseForest)

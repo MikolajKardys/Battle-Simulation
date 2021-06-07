@@ -2,23 +2,19 @@ package agents
 
 import agents.Teams.Teams
 
-class Infantry(position: Vector2D, direction: Vector2D, team: Teams) extends Agent(position: Vector2D, direction: Vector2D, team: Teams){
+class Infantry(position: Vector2D, direction: Vector2D, team: Teams) extends Agent(position, direction, team){
   def matesCount(pos: Vector2D):  Int = {
     val mates = Engine.getSurrounding(pos, radius = 1.5)
     mates.count(_.team == team)
   }
-      /*
-      override def move(moveType: ActionType.ActionType): Boolean = {
-        if (moveType == ActionType.Fight) {
-          val oldPosition = position
-          super.move(moveType)
 
-          if (matesCount(position) < matesCount(oldPosition)){
-            po
-        }
-        true
-      }
-  }*/
+  //Stay in formation
+  override def move(moveType: ActionType.ActionType, preMoveTab: Seq[Vector2D] = null): Boolean = {
+    val moves = Engine.getMoves(position)
+
+    super.move(moveType)
+  }
+
 }
 object Infantry{
   def apply(position: Vector2D, direction: Vector2D, team: Teams) = new Infantry(position, direction, team)
