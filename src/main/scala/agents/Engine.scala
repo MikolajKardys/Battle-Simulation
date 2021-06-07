@@ -96,7 +96,7 @@ object Engine extends App {
       Thread.sleep(10)
     }
   }
-
+  /*
   def repaintMap(): Unit = {
     val agentNum = agentList.length
 
@@ -116,11 +116,36 @@ object Engine extends App {
     }
 
     canvas.repaint(xs, ys, color, morale)
+  }*/
+
+  def repaintMap(): Unit = {
+    val agentNum = agentList.length
+
+    val xs = new Array[Int](_length = agentNum)
+    val ys = new Array[Int](_length = agentNum)
+    val color = new Array[Double](_length = agentNum)
+    val morale = new Array[Double](_length = agentNum)
+    val troopType = new Array[Int](_length = agentNum)
+
+    var index = 0
+    for (agent <- agentList){
+      xs(index) = agent.position.x
+      ys(index) = agent.position.y
+      color(index) = agent.team.id * agent.health / agent.statistics("maxHealth")
+      morale(index) = Math.min(1, Math.max(0, agent.morale / agent.statistics("maxMorale")))
+      troopType(index) = 0
+
+      index += 1
+    }
+
+    canvas.paintMap(xs, ys, color, troopType, morale)
   }
 
-  val rows = 60
-  val cols = 100
-  import tmp_viz.Main
-  val canvas = new Main(rows, cols)
-  run(100, 100)
+  val rows = 100
+  val cols = 70
+
+  import mapGenerator.MapGenerator.Map
+  val canvas = new Map(cols, rows)
+
+  run(200, 200)
 }

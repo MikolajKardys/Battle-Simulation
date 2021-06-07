@@ -116,6 +116,8 @@ public class MapGUI extends JPanel {
     }
 
     public void paintMap(int[] xs, int[] ys, double[] colors, int[] typeA, double[] morale) {
+        agents.clear();
+
         int agentNum = xs.length;
         Agent agent;
         for(int i = 0; i < agentNum; i++) {
@@ -124,6 +126,7 @@ public class MapGUI extends JPanel {
                 agents.add(agent);
             }
         }
+        repaint();
     }
 
     @Override protected void paintComponent(Graphics g) {
@@ -166,18 +169,17 @@ public class MapGUI extends JPanel {
                 g.fillPolygon(poly);
             }
 
-            Iterator<Agent> agentIterator = agents.iterator();
-            Agent agent;
-            while(agentIterator.hasNext()) {
-                agent = agentIterator.next();
+            for (Agent agent : agents){
+                int colorMag = (int)(255 * (1 - Math.pow(Math.abs(agent.color), 0.5)));
                 switch(agent.typeA) {
                     case 0: {
                         if(agent.color < 0) {
-                            color = new Color(255,255-(int)(-255*agent.color),255-(int)(-255*agent.color));
+                            color = new Color(255, colorMag, colorMag);
                         }
                         else {
-                            color = new Color(255-(int)(255*agent.color),255-(int)(255*agent.color),255);
+                            color = new Color(colorMag, colorMag,255);
                         }
+
                         g.setColor(color);
                         g.fillRect(agent.x * squareSide, agent.y * squareSide, squareSide, squareSide);
 

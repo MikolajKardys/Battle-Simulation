@@ -8,7 +8,7 @@ import java.util
   Map generator for battle simulation.
 */
 
-object MapGenerator extends App {
+object MapGenerator{
   class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int, val altitude: Double, var denseForestIsoValue: Int) {
     val isDenseForest: Boolean = if(MapConst.inForestIsoValue.contains(denseForestIsoValue)) true else false
     val isSparseForest: Boolean = if(!isDenseForest && MapConst.inForestIsoValue.contains(isoValue)) true else false
@@ -332,6 +332,4 @@ object MapGenerator extends App {
     line = line :+ (x2, y2)
     line
   }
-
-  val map = Map(100, 120)
 }
