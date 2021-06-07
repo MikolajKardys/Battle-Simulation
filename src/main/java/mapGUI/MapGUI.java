@@ -19,19 +19,47 @@ public class MapGUI extends JPanel {
         }
     }
 
+    private class MyRectangle extends Rectangle {
+        private final double altitude;
+
+        public MyRectangle(int x, int y, int width, int height, double altitude) {
+            super(x, y, width, height);
+            this.altitude = altitude;
+        }
+    }
+
+    private class MyPoint {
+        private final int x;
+        private final int y;
+        private final int value;
+
+        public MyPoint(int x, int y, int value) {
+            this.x = x;
+            this.y = y;
+            this.value = value;
+        }
+    }
+
     private final int windowWidth;
     private final int windowHeight;
+    LinkedList<MyPoint> points;
     LinkedList<Line> lines;
     LinkedList<Polygon> polygons;
     LinkedList<MyRectangle> rectangles;
-
+    private boolean biom = true;
 
     public MapGUI(int windowWidth, int windowHeight) {
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
+        points = new LinkedList<>();
         lines = new LinkedList<>();
         polygons = new LinkedList<>();
         rectangles = new LinkedList<>();
+    }
+
+    public void addPoint(int x, int y, int v) {
+        MyPoint point = new MyPoint(x, y, v);
+        points.add(point);
     }
 
     public void addLine(int x1, int y1, int x2, int y2) {
@@ -45,15 +73,6 @@ public class MapGUI extends JPanel {
         for(int i = 0; i < n; i++)
             poly.addPoint(xs.get(i), ys.get(i));
         polygons.add(poly);
-    }
-
-    private class MyRectangle extends Rectangle {
-        private final double altitude;
-
-        public MyRectangle(int x, int y, int width, int height, double altitude) {
-            super(x, y, width, height);
-            this.altitude = altitude;
-        }
     }
 
     public void addRectangle(int x, int y, int width, int height, Double altitude) {
@@ -78,32 +97,81 @@ public class MapGUI extends JPanel {
         super.paintComponent(g);
         this.setSize(this.windowWidth, this.windowHeight);
         this.setLocation(0, 0);
-/*
-        Iterator<Line> lineIterator = lines.iterator();
-        Line line;
-        while(lineIterator.hasNext()) {
-            line = lineIterator.next();
-            g.drawLine(line.x1, line.y1, line.x2, line.y2);
-        }
-
-        g.setColor(new Color(50, 255, 50));
-        g.fillRect(0, 0, windowWidth, windowHeight);
-
-        Iterator<Polygon> polyIterator = polygons.iterator();
-        Polygon poly;
-        while(polyIterator.hasNext()) {
-            poly = polyIterator.next();
-            g.setColor(new Color(0, 100, 0));
-            g.fillPolygon(poly);
-        }*/
 
         Iterator<MyRectangle> rectIterator = rectangles.iterator();
         MyRectangle rect;
-        while(rectIterator.hasNext()) {
+        int red, green, blue;
+        double rel;
+        while (rectIterator.hasNext()) {
             rect = rectIterator.next();
-            int c = (int)Math.round(rect.altitude*255);
-            g.setColor(new Color(0, c, 0));
+
+            if(rect.altitude > 0.8) {
+                rel = 5*(rect.altitude-0.8);
+
+                red = 255;
+                green = 255-(int)Math.round(rel * 255);
+                blue = 0;
+            }
+            else {
+                rel = rect.altitude * 1.25;
+
+                red = (int)Math.round(rel * 255);
+                green = 255;
+                blue = 0;
+            }
+            g.setColor(new Color(red, green, blue));
             g.fillRect(rect.x, rect.y, rect.width, rect.height);
+        }
+
+        if(biom) {
+            Iterator<Polygon> polyIterator = polygons.iterator();
+            Polygon poly;
+            Color color = new Color(0, 120, 0);
+            while (polyIterator.hasNext()) {
+                poly = polyIterator.next();
+                g.setColor(color);
+                g.fillPolygon(poly);
+            }
+
+            /*Iterator<MyPoint> pointIterator = points.iterator();
+            MyPoint point;
+            while(pointIterator.hasNext()) {
+                point = pointIterator.next();
+                if(point.value == 1) {
+                    g.setColor(Color.BLUE);
+                    g.fillOval(point.x, point.y, 5, 5);
+                }
+                else if(point.value == 2) {
+                    g.setColor(Color.RED);
+                    g.fillOval(point.x, point.y, 5, 5);
+                }
+            }*/
+        }
+        else {
+            /*Iterator<MyRectangle> rectIterator = rectangles.iterator();
+            MyRectangle rect;
+            int red, green, blue;
+            double rel;
+            while (rectIterator.hasNext()) {
+                rect = rectIterator.next();
+
+                if(rect.altitude > 0.8) {
+                    rel = 5*(rect.altitude-0.8);
+
+                    red = 255;
+                    green = 255-(int)Math.round(rel * 255);
+                    blue = 0;
+                }
+                else {
+                    rel = rect.altitude * 1.25;
+
+                    red = (int)Math.round(rel * 255);
+                    green = 255;
+                    blue = 0;
+                }
+                g.setColor(new Color(red, green, blue));
+                g.fillRect(rect.x, rect.y, rect.width, rect.height);
+            }*/
         }
     }
 
