@@ -14,7 +14,11 @@ class Vector2D(val x: Int, val y: Int) {
   }
 
   def getRoundDist(other: Vector2D): Int = {
-    Math.round(getDistance(other)*10).asInstanceOf[Int]
+    Math.round(getDistance(other) * 10).asInstanceOf[Int]
+  }
+
+  def flip(): Vector2D = {
+    Vector2D(this.y, this.x)
   }
 
   override def toString: String = s"($x, $y)"

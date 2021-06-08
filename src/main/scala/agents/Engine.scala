@@ -1,6 +1,6 @@
 package agents
 
-import mapGUI.ControlPanel
+import utilities.Vector2D
 
 import scala.util.Random
 import scala.collection.mutable
@@ -11,10 +11,11 @@ object Teams extends Enumeration {
   val Blue: agents.Teams.Value = Value(-1)
 }
 
+import mapGenerator.MapGenerator.Map
+
 import agents.Teams._
 
-object Engine extends App {
-
+class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
   var agentList: List[Agent] = List[Agent]()
 
   def getFields(position: Vector2D): Seq[Vector2D] = {
@@ -42,29 +43,43 @@ object Engine extends App {
     agent.position.x == 0 || agent.position.y == 0 || agent.position.x == rows - 1 || agent.position.y == cols - 1
   }
 
-  def setupLists(reds: Int, blues: Int): mutable.Map[String, List[Agent]] = {
+  def getRandom(reds: Int, blues: Int): List[Agent] = {
     var redTeam = List[Agent]()
     var blueTeam = List[Agent]()
 
-    val redFieldList = Random.shuffle((for (i <- 0.until(rows); j <- 0.until(cols / 3)) yield (i, j)).toList).slice(0, reds)
+    val redFieldList = Random.shuffle((for (i <- 0.until(rows); j <- 0.to(2)) yield (i, j)).toList).slice(0, reds)
     for (field <- redFieldList) {
       redTeam = redTeam.appended(Infantry(Vector2D(field._1, field._2), Vector2D(0, 0), Red))
     }
 
-    val blueFieldList = Random.shuffle((for (i <- 0.until(rows); j <- (2 * cols / 3).until(cols))
+    val blueFieldList = Random.shuffle((for (i <- 0.until(rows); j <- (2 * cols / 3).until(2 * cols / 3 + 2))
       yield (i, j)).toList).slice(0, blues)
     for (field <- blueFieldList) {
       blueTeam = blueTeam.appended(Infantry(Vector2D(field._1, field._2), Vector2D(0, 0), Blue))
     }
 
-    agentList = agentList.appendedAll(redTeam).appendedAll(blueTeam)
+    agentList.appendedAll(redTeam).appendedAll(blueTeam)
+  }
+
+  def setupLists(): mutable.Map[String, List[Agent]] = {
+    var redTeam = List[Agent]()
+    var blueTeam = List[Agent]()
+
+    for (agent <- agentList){
+      if (agent.team == Red)
+        redTeam = redTeam.appended(agent)
+      else
+        blueTeam = blueTeam.appended(agent)
+    }
 
     mutable.Map("reds" -> redTeam, "blues" -> blueTeam)
   }
 
-  def run(reds: Int, blues: Int): Unit = {
+  def run(agents: List[Agent]): Unit = {
+    agentList = agents
+    val teams = setupLists()
+
     repaintMap()
-    val teams = setupLists(reds, blues)
 
     for (_ <- 1 to 2000){
       if (teams("blues").isEmpty) {
@@ -81,11 +96,7 @@ object Engine extends App {
       agentList = Random.shuffle(agentList)
       for (agent <- agentList){                         //Iteracja dla każdego agenta, który jeszcze żyje
         if (agent.health > 0) {
-          val agentsInView = for (other <- agentList if other.health > 0 && other != agent) yield other
-
-          //agentsInView = agentsInView.filter((other: Agent) => Terrain.canSee(agent.position, other.position))//TODO: Widoczność
-
-          agent.doAction(agentsInView)
+          agent.doAction(terrainMap.canSee, agentList)
         }
       }
 
@@ -94,31 +105,10 @@ object Engine extends App {
       teams("blues") = teams("blues").filter(agent => agent.health > 0 && !agent.flees)
 
       //Handle visualization
-      repaintMap()
       Thread.sleep(10)
+      repaintMap()
     }
   }
-  /*
-  def repaintMap(): Unit = {
-    val agentNum = agentList.length
-
-    val xs = new Array[Int](_length = agentNum)
-    val ys = new Array[Int](_length = agentNum)
-    val color = new Array[Double](_length = agentNum)
-    val morale = new Array[Double](_length = agentNum)
-
-    var index = 0
-    for (agent <- agentList){
-      xs(index) = agent.position.x
-      ys(index) = agent.position.y
-      color(index) = agent.team.id * agent.health / agent.statistics("maxHealth")
-      morale(index) = Math.min(1, Math.max(0, agent.morale / agent.statistics("maxMorale")))
-
-      index += 1
-    }
-
-    canvas.repaint(xs, ys, color, morale)
-  }*/
 
   def repaintMap(): Unit = {
     val agentNum = agentList.length
@@ -140,16 +130,20 @@ object Engine extends App {
       index += 1
     }
 
-    canvas.paintMap(xs, ys, color, troopType, morale)
+    terrainMap.paintMap(xs, ys, color, troopType, morale)
   }
+}
 
-  val rows = 70
-  val cols = 40
+object Abc {
+  val rows = 100
+  val cols = 70
 
-  import map.MapGenerator.Map
-  val canvas = new Map(cols, rows)
+  val map: Map = new Map(cols, rows)
+  val Engine = new EngineClass(rows, cols, map)
 
-  new ControlPanel()
+  def main (args: Array[String]): Unit = {
+    val randomList = Engine.getRandom(100, 100)
 
-  run(200, 200)
+    Engine.run(randomList)
+  }
 }
