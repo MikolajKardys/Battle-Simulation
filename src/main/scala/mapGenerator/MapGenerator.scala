@@ -175,7 +175,7 @@ object MapGenerator{
         River
       else if(map(position.x)(position.y).isSparseForest)
         SparseForest
-      else if(map(position.x)(position.y).isSparseForest)
+      else if(map(position.x)(position.y).isDenseForest)
         DenseForest
       else
         Meadow

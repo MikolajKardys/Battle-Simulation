@@ -1,7 +1,11 @@
 package agents
-import agents.Teams._
 
 import scala.util.Random
+
+import agents.Teams._
+import utilities.Vector2D
+import utilities.TerrainType._
+import agents.Abc.Engine ///WAŻNE!!!
 
 class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   object ActionType extends Enumeration {
@@ -12,19 +16,16 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   import ActionType._
 
   // Wartości które będą zmieniały się w zależności od typu jednostki
-  var statistics: Map[String, Double] = Map(
-    "range" -> 1.5, "strength" -> 5.0, "maxHealth" -> 20, "attackCost" -> 5, "moveCost" -> 5, "maxMorale" -> 10,
-    "value" -> 3
-  )
+  var statistics: Map[String, Double] = Map()
+  var terrainModifier: Map[TerrainType, Double] = Map()
 
   var teammates: List[Agent] = List[Agent]()
   var enemies: List[Agent] = List[Agent]()
 
-  var target: Agent = null
   var hitBy: List[Agent] = List[Agent]()
 
-  var health: Double = statistics("maxHealth")
-  var lastHealth: Double = statistics("maxHealth") // Do liczenia morale
+  var health: Double = 0
+  var lastHealth: Double = 0 // Do liczenia morale
 
   def criteriaVal(enemy: Agent): Double = {
     var value = 1 / position.getDistance(enemy.position)
@@ -45,7 +46,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
       val posTargets = inRange.filter((agent : Agent) => criteriaVal(inRange.last) == criteriaVal(agent))
 
-      target = posTargets(Random.nextInt(posTargets.length))
+      val target = posTargets(Random.nextInt(posTargets.length))
 
       val hitStrength = statistics("strength")  //TODO: Terrain advantage
 
@@ -68,24 +69,27 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   ////////////////////////////////////////////////////////////////////
 
   // Move block
-  def move(moveType: ActionType, preMoveTab: Seq[Vector2D] = null): Boolean ={
-    val criteria: Vector2D => Double = moveType match {
-      case Fight => (posMove: Vector2D) => enemies.last.position.getDistance(posMove)
-      case Flee => (posMove: Vector2D) => (for (enemy <- enemies) yield 1 / enemy.position.getDistance(posMove)).sum
+  def move(moveType: ActionType, preCriteria: Vector2D => Double = null): Boolean ={
+    var criteria = preCriteria
+
+    if (preCriteria == null) {
+      criteria = moveType match {
+          case Fight => (posMove: Vector2D) => enemies.last.position.getDistance(posMove)
+          case Flee => (posMove: Vector2D) => (for (enemy <- enemies) yield 1 / enemy.position.getDistance(posMove)).sum
+        }
     }
 
-    var moves: Seq[Vector2D] = preMoveTab
-    if (moves == null) {
-      moves = Engine.getMoves(position)
-    }
+    var moves = Engine.getMoves(position)
 
     if (moves.nonEmpty){
       moves = moves.sortBy(criteria)
 
-      if (criteria(position) < criteria(moves.last)){
+      if (criteria(position) > criteria(moves.head)){
+        val moveModifier = Math.pow(Engine.terrainMap.elevation(position.flip(), moves.head.flip()), 20)
+
         position = moves.head
 
-        val moveCost = statistics("moveCost")  //TODO: Terrain advantage
+        val moveCost = statistics("moveCost") * moveModifier //TODO: Terrain advantage
 
         tokens += moveCost
 
@@ -96,7 +100,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   }
 
   ///  Action block  /////////////////////////////////////////////////
-  var morale: Double = statistics("maxMorale")
+  var morale: Double = 0
   var flees: Boolean = false
 
   var tokens: Double = 0
@@ -124,16 +128,19 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
     Fight
   }
 
-  def doAction(allAgents: List[Agent]): Unit = {
+  def doAction(canSeeFunc: (Vector2D, Vector2D) => Boolean, allAgents: List[Agent]): Unit = {
     if (tokens > 0) {
       tokens -= 1
     }
     else {
+      var seeAgents = for (other <- allAgents if other.health > 0 && other != this) yield other
+      seeAgents = seeAgents.filter((other: Agent) => canSeeFunc(position.flip(), other.position.flip()))
+
       flees = false
 
       enemies = List[Agent]()
       teammates = List[Agent]()
-      for (agent <- allAgents){
+      for (agent <- seeAgents){
         if (agent.team != team)
           enemies = enemies.appended(agent)
         else
@@ -143,7 +150,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
       if (enemies.isEmpty)
         return
 
-      morale = calcMorale(allAgents)
+      morale = calcMorale(seeAgents)
 
       chooseAction() match {
         case Fight =>
