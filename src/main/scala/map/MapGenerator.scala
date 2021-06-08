@@ -117,15 +117,15 @@ object MapGenerator {
 
       if(map(agentPosition.x)(agentPosition.y).isSparseForest && (!map(place.x)(place.y).isSparseForest && !map(place.x)(place.y).isDenseForest)) {
         //agent is in sparse forest and place is outside of forest
-        if(visibility >= -5) true else false
+        if(visibility >= -MapConst.fromForestVisibility) true else false
       }
       else if(!map(agentPosition.x)(agentPosition.y).isSparseForest && !map(agentPosition.x)(agentPosition.y).isDenseForest && (map(place.x)(place.y).isSparseForest || map(place.x)(place.y).isDenseForest)) {
         //agent is outside of the forest and place is in the forest
-        if(visibility >= -1) true else false
+        if(visibility >= -MapConst.toForestVisibility) true else false
       }
       else {
         //every other possibility
-        if(visibility >= -10) true else false
+        if(visibility >= -MapConst.throughForestVisibility) true else false
       }
     }
 
