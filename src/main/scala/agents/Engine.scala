@@ -1,5 +1,7 @@
 package agents
 
+import mapGUI.ControlPanel
+
 import scala.util.Random
 import scala.collection.mutable
 
@@ -144,8 +146,10 @@ object Engine extends App {
   val rows = 70
   val cols = 40
 
-  import mapGenerator.MapGenerator.Map
+  import map.MapGenerator.Map
   val canvas = new Map(cols, rows)
+
+  new ControlPanel()
 
   run(200, 200)
 }

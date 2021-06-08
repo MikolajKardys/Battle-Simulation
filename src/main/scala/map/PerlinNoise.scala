@@ -1,4 +1,4 @@
-package mapGenerator
+package map
 
 import scala.util.Random
 

@@ -2,9 +2,11 @@ package mapGUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.*;
 
-public class MapGUI extends JPanel {
+public class MapGUI extends JPanel implements MouseListener {
     private static class MyRectangle extends Rectangle {
         private final double altitude;
 
@@ -48,6 +50,7 @@ public class MapGUI extends JPanel {
     LinkedList<Agent> agents;
 
     public MapGUI(int windowWidth, int windowHeight, int squareSide) {
+        super();
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
         this.squareSide = squareSide;
@@ -55,6 +58,21 @@ public class MapGUI extends JPanel {
         polygons = new LinkedList<>();
         rectangles = new LinkedList<>();
         agents = new LinkedList<>();
+    }
+
+    public void initialize() {
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setResizable(false);
+        frame.getContentPane().add(this);
+        frame.pack();
+        frame.setLocationByPlatform(true);
+        frame.setLayout(null);
+
+        this.addMouseListener(this);
+
+        this.setLayout(null);
+        frame.setVisible(true);
     }
 
     public void addPolygon(Vector<Integer> xs, Vector<Integer> ys, String terrain) {
@@ -68,19 +86,6 @@ public class MapGUI extends JPanel {
     public void addRectangle(int x, int y, int width, int height, Double altitude) {
         MyRectangle rect = new MyRectangle(x, y, width, height, altitude);
         rectangles.add(rect);
-    }
-
-    public void drawMap() {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setResizable(false);
-        frame.getContentPane().add(this);
-        frame.pack();
-        frame.setLocationByPlatform(true);
-        frame.setLayout(null);
-
-        this.setLayout(null);
-        frame.setVisible(true);
     }
 
     public void paintMap(int[] xs, int[] ys, double[] colors, int[] typeA, double[] morale) {
@@ -101,8 +106,9 @@ public class MapGUI extends JPanel {
         this.setSize(this.windowWidth, this.windowHeight);
         this.setLocation(0, 0);
 
-        Iterator<MyRectangle> rectIterator = rectangles.iterator();
-        MyRectangle rect;
+
+        Iterator<MapGUI.MyRectangle> rectIterator = rectangles.iterator();
+        MapGUI.MyRectangle rect;
         int red, green, blue;
         double rel;
         while (rectIterator.hasNext()) {
@@ -118,8 +124,8 @@ public class MapGUI extends JPanel {
             g.fillRect(rect.x, rect.y, rect.width, rect.height);
         }
 
-        Iterator<MyPolygon> polyIterator = polygons.iterator();
-        MyPolygon poly;
+        Iterator<MapGUI.MyPolygon> polyIterator = polygons.iterator();
+        MapGUI.MyPolygon poly;
         Color color = new Color(0,0,0);
         while (polyIterator.hasNext()) {
             poly = polyIterator.next();
@@ -133,7 +139,7 @@ public class MapGUI extends JPanel {
 
         Color teamColor, moraleColor;
 
-        Agent agent;
+        MapGUI.Agent agent;
         //DO NOT DELETE THIS WARNING
         for(int i = 0; i < agents.size(); i++) {
             agent = agents.get(i);
@@ -206,5 +212,30 @@ public class MapGUI extends JPanel {
 
     @Override public Dimension getPreferredSize() {
         return new Dimension(this.windowWidth, this.windowHeight);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        System.out.println(e.getX()/squareSide + " " + e.getY()/squareSide);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
     }
 }

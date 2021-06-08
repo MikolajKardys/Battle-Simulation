@@ -1,4 +1,4 @@
-package mapGenerator
+package map
 import utilities.Vector2D
 
 trait Terrain {

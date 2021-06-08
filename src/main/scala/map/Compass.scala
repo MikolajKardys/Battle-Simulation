@@ -1,4 +1,4 @@
-package mapGenerator
+package map
 
 class Compass(val squareSide: Int) {
   val yNORTH: Int = 0
