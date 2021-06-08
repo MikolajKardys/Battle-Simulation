@@ -11,9 +11,8 @@ object Teams extends Enumeration {
   val Blue: agents.Teams.Value = Value(-1)
 }
 
-import mapGenerator.MapGenerator.Map
-
 import agents.Teams._
+import map.MapGenerator.Map
 
 class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
   var agentList: List[Agent] = List[Agent]()
@@ -131,19 +130,5 @@ class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
     }
 
     terrainMap.paintMap(xs, ys, color, troopType, morale)
-  }
-}
-
-object Abc {
-  val rows = 100
-  val cols = 70
-
-  val map: Map = new Map(cols, rows)
-  val Engine = new EngineClass(rows, cols, map)
-
-  def main (args: Array[String]): Unit = {
-    val randomList = Engine.getRandom(100, 100)
-
-    Engine.run(randomList)
   }
 }

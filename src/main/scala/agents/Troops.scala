@@ -1,7 +1,7 @@
 package agents
 
 import agents.Teams.Teams
-import Abc.Engine
+import run.app.Engine
 
 import utilities.Vector2D
 import utilities.TerrainType._
@@ -25,10 +25,6 @@ class Infantry(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir
   }
   override def move(moveType: ActionType.ActionType, preCriteria: Vector2D => Double): Boolean = {
     var criteria: Vector2D => Double = null
-
-    if (moveType == ActionType.Fight){
-      criteria = (posMove: Vector2D) => enemies.last.position.getDistance(posMove) / Math.sqrt(matesCount(posMove))
-    }
 
     super.move(moveType, criteria)
   }

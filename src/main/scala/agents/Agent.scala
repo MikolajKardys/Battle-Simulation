@@ -5,7 +5,7 @@ import scala.util.Random
 import agents.Teams._
 import utilities.Vector2D
 import utilities.TerrainType._
-import agents.Abc.Engine ///WAŻNE!!!
+import run.app.Engine ///WAŻNE!!!
 
 class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   object ActionType extends Enumeration {
