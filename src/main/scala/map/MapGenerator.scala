@@ -7,7 +7,7 @@ import java.util
   Map generator for battle simulation.
 */
 
-object MapGenerator{
+object MapGenerator {
   class Map(val height: Int, val width: Int) extends Terrain {
     import mapGUI.MapGUI
 

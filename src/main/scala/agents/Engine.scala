@@ -48,13 +48,13 @@ class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
 
     val redFieldList = Random.shuffle((for (i <- 0.until(rows); j <- 0.to(2)) yield (i, j)).toList).slice(0, reds)
     for (field <- redFieldList) {
-      redTeam = redTeam.appended(Infantry(Vector2D(field._1, field._2), Vector2D(0, 0), Red))
+      redTeam = redTeam.appended(Infantry(Vector2D(field._1, field._2), Red))
     }
 
     val blueFieldList = Random.shuffle((for (i <- 0.until(rows); j <- (2 * cols / 3).until(2 * cols / 3 + 2))
       yield (i, j)).toList).slice(0, blues)
     for (field <- blueFieldList) {
-      blueTeam = blueTeam.appended(Infantry(Vector2D(field._1, field._2), Vector2D(0, 0), Blue))
+      blueTeam = blueTeam.appended(Infantry(Vector2D(field._1, field._2), Blue))
     }
 
     agentList.appendedAll(redTeam).appendedAll(blueTeam)
@@ -74,8 +74,7 @@ class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
     mutable.Map("reds" -> redTeam, "blues" -> blueTeam)
   }
 
-  def run(agents: List[Agent]): Unit = {
-    agentList = agents
+  def run(): Unit = {
     val teams = setupLists()
 
     repaintMap()

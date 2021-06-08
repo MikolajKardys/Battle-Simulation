@@ -1,12 +1,25 @@
 package mapGUI;
 
+import run.app;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+
 public class ControlPanel extends JPanel implements ActionListener {
     private final JButton start;
+
+    private final JRadioButton infantryButton;
+    private final JRadioButton heavyInfantryButton;
+    private final JRadioButton cavalryButton;
+    private final JRadioButton archersButton;
+
+    private final JRadioButton redButton;
+    private final JRadioButton blueButton;
+
+    public boolean wait = true;
 
     public ControlPanel() {
         JFrame frame = new JFrame();
@@ -18,7 +31,6 @@ public class ControlPanel extends JPanel implements ActionListener {
         frame.setLayout(null);
 
         this.setLayout(null);
-        frame.setVisible(true);
 
         start = new JButton("START");
         start.setSize(200, 30);
@@ -27,32 +39,28 @@ public class ControlPanel extends JPanel implements ActionListener {
 
         this.add(start);
 
-        JRadioButton infantryButton = new JRadioButton("Infantry");
-        //infantryButton.setMnemonic(KeyEvent.VK_B);
+        infantryButton = new JRadioButton("Infantry");
         infantryButton.setActionCommand("Infantry");
-        infantryButton.setBounds(150, 20, 200, 30);
+        infantryButton.setBounds(50, 20, 150, 30);
         infantryButton.setSelected(true);
 
-        JRadioButton heavyInfantryButton = new JRadioButton("Heavy infantry");
-        //heavyInfantryButton.setMnemonic(KeyEvent.VK_C);
-        heavyInfantryButton.setBounds(150, 60, 200, 30);
+        heavyInfantryButton = new JRadioButton("Heavy infantry");
+        heavyInfantryButton.setBounds(50, 60, 150, 30);
         heavyInfantryButton.setActionCommand("Heavy infantry");
 
-        JRadioButton cavalryButton = new JRadioButton("Cavalry");
-        //cavalryButton.setMnemonic(KeyEvent.VK_D);
-        cavalryButton.setBounds(150, 100, 200, 30);
+        cavalryButton = new JRadioButton("Cavalry");
+        cavalryButton.setBounds(50, 100, 150, 30);
         cavalryButton.setActionCommand("Cavalry");
 
-        JRadioButton archersButton = new JRadioButton("Archers");
-        //archersButton.setMnemonic(KeyEvent.VK_R);
-        archersButton.setBounds(150, 140, 200, 30);
+        archersButton = new JRadioButton("Archers");
+        archersButton.setBounds(50, 140, 150, 30);
         archersButton.setActionCommand("Archers");
 
-        ButtonGroup group = new ButtonGroup();
-        group.add(infantryButton);
-        group.add(heavyInfantryButton);
-        group.add(cavalryButton);
-        group.add(archersButton);
+        ButtonGroup groupType = new ButtonGroup();
+        groupType.add(infantryButton);
+        groupType.add(heavyInfantryButton);
+        groupType.add(cavalryButton);
+        groupType.add(archersButton);
 
         this.add(infantryButton);
         this.add(heavyInfantryButton);
@@ -63,14 +71,50 @@ public class ControlPanel extends JPanel implements ActionListener {
         heavyInfantryButton.addActionListener(this);
         cavalryButton.addActionListener(this);
         archersButton.addActionListener(this);
+
+        redButton = new JRadioButton("Red");
+        redButton.setActionCommand("Red");
+        redButton.setBounds(250, 60, 75, 30);
+        redButton.setSelected(true);
+
+        blueButton = new JRadioButton("Blue");
+        blueButton.setBounds(250, 100, 75, 30);
+        blueButton.setActionCommand("Blue");
+
+        ButtonGroup groupTeam = new ButtonGroup();
+        groupTeam.add(redButton);
+        groupTeam.add(blueButton);
+
+        this.add(redButton);
+        this.add(blueButton);
+
+        redButton.addActionListener(this);
+        blueButton.addActionListener(this);
+
+        frame.setVisible(true);
+    }
+
+    public int getType() {
+        if(infantryButton.isSelected())
+            return 0;
+        else if(heavyInfantryButton.isSelected())
+            return 1;
+        else if(cavalryButton.isSelected())
+            return 2;
+        else
+            return 3;
+    }
+
+    public int getTeam() {
+        if(redButton.isSelected())
+            return 0;
+        return 1;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource() == start)
-            System.out.println("start");
-        else
-            System.out.println(e.getSource());
+        if (e.getSource() == start)
+            wait = false;
     }
 
     @Override public Dimension getPreferredSize() {

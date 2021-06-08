@@ -1,12 +1,15 @@
 package mapGUI;
 
+import run.app;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.*;
 
-public class MapGUI extends JPanel implements MouseListener {
+public class MapGUI extends JPanel implements MouseListener, MouseMotionListener {
     private static class MyRectangle extends Rectangle {
         private final double altitude;
 
@@ -51,6 +54,7 @@ public class MapGUI extends JPanel implements MouseListener {
 
     public MapGUI(int windowWidth, int windowHeight, int squareSide) {
         super();
+
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
         this.squareSide = squareSide;
@@ -70,6 +74,7 @@ public class MapGUI extends JPanel implements MouseListener {
         frame.setLayout(null);
 
         this.addMouseListener(this);
+        this.addMouseMotionListener(this);
 
         this.setLayout(null);
         frame.setVisible(true);
@@ -98,14 +103,14 @@ public class MapGUI extends JPanel implements MouseListener {
                 agents.add(agent);
             }
         }
-        repaint();
+
+        this.repaint();
     }
 
     @Override protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         this.setSize(this.windowWidth, this.windowHeight);
         this.setLocation(0, 0);
-
 
         Iterator<MapGUI.MyRectangle> rectIterator = rectangles.iterator();
         MapGUI.MyRectangle rect;
@@ -216,26 +221,30 @@ public class MapGUI extends JPanel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        System.out.println(e.getX()/squareSide + " " + e.getY()/squareSide);
+        app.addTroop(e.getX()/squareSide, e.getY()/squareSide);
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {}
 
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        int x = e.getX();
+        int y = e.getY();
+        if ((x < windowWidth) && (x >= 0) && (y < windowHeight) && (y >= 0)) {
+            app.addTroop(x/squareSide, y/squareSide);
+        }
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-
-    }
+    public void mouseMoved(MouseEvent e) {}
 }

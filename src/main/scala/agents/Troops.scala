@@ -26,11 +26,42 @@ class Infantry(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir
   override def move(moveType: ActionType.ActionType, preCriteria: Vector2D => Double): Boolean = {
     var criteria: Vector2D => Double = null
 
+    if (moveType == ActionType.Fight)
+      criteria = (posMove: Vector2D) => enemies.last.position.getDistance(posMove)
+
     super.move(moveType, criteria)
   }
 }
 object Infantry{
-  def apply(position: Vector2D, direction: Vector2D, team: Teams) = new Infantry(position, direction, team)
+  def apply(position: Vector2D, team: Teams) = new Infantry(position, Vector2D(0, 0), team)
+}
+
+
+class HeavyInf(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir, team){
+  statistics = Map(
+    "range" -> 10, "strength" -> 5, "maxHealth" -> 10, "attackCost" -> 10, "moveCost" -> 5, "maxMorale" -> 10,
+    "value" -> 4
+  )
+
+  health = statistics("maxHealth")
+  morale = statistics("maxMorale")
+}
+object HeavyInf{
+  def apply(position: Vector2D, team: Teams) = new HeavyInf(position, Vector2D(0, 0), team)
+}
+
+
+class Cavalry(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir, team){
+  statistics = Map(
+    "range" -> 10, "strength" -> 5, "maxHealth" -> 10, "attackCost" -> 10, "moveCost" -> 5, "maxMorale" -> 10,
+    "value" -> 4
+  )
+
+  health = statistics("maxHealth")
+  morale = statistics("maxMorale")
+}
+object Cavalry{
+  def apply(position: Vector2D, team: Teams) = new Cavalry(position, Vector2D(0, 0), team)
 }
 
 
@@ -57,6 +88,5 @@ class Bowman(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir, 
   }
 }
 object Bowman{
-  def apply(position: Vector2D, direction: Vector2D, team: Teams) = new Bowman(position, direction, team)
+  def apply(position: Vector2D, team: Teams) = new Bowman(position, Vector2D(0, 0), team)
 }
-
