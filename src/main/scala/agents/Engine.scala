@@ -1,6 +1,7 @@
 package agents
 
 import utilities.Vector2D
+import utilities.TroopType
 
 import scala.util.Random
 import scala.collection.mutable
@@ -123,7 +124,7 @@ class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
       ys(index) = agent.position.y
       color(index) = agent.team.id * agent.health / agent.statistics("maxHealth")
       morale(index) = Math.min(1, Math.max(0, agent.morale / agent.statistics("maxMorale")))
-      troopType(index) = 0
+      troopType(index) = agent.troopType.id
 
       index += 1
     }

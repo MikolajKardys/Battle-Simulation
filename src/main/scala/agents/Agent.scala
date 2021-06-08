@@ -1,13 +1,15 @@
 package agents
 
 import scala.util.Random
-
 import agents.Teams._
 import utilities.Vector2D
 import utilities.TerrainType._
 import run.app.Engine ///WAŻNE!!!
+import utilities.TroopType._
 
 class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
+  val troopType: TroopType = None
+
   object ActionType extends Enumeration {
     type ActionType = Value
     val Fight, Brace, Flee = Value

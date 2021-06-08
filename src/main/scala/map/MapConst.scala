@@ -12,7 +12,7 @@ object MapConst {
   val obstaclesThresh = 0.2
 
   //the higher this numbers are the better visibility is
-  val fromForestVisibility = 5
-  val toForestVisibility = 1
-  val throughForestVisibility = 10
+  val fromForestVisibility = 8
+  val toForestVisibility = 4
+  val throughForestVisibility = 13
 }
