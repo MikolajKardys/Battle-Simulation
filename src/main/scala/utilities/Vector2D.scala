@@ -13,6 +13,10 @@ class Vector2D(val x: Int, val y: Int) {
     Math.sqrt((this.x - other.x) * (this.x - other.x) + (this.y - other.y) * (this.y - other.y))
   }
 
+  def getRoundDist(other: Vector2D): Int = {
+    Math.round(getDistance(other)*10).asInstanceOf[Int]
+  }
+
   override def toString: String = s"($x, $y)"
 
   override def equals(other: Any): Boolean = {
@@ -21,6 +25,10 @@ class Vector2D(val x: Int, val y: Int) {
         (this.x == that.x) && (this.y == that.y)
       case _ => false
     }
+  }
+
+  override def hashCode(): Int = {
+    y*997+x
   }
 }
 

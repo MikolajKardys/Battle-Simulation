@@ -9,72 +9,58 @@ import java.util
 */
 
 object MapGenerator{
-  class Cell(val squareSide: Int, val x: Int, val y: Int, val isoValue: Int, val altitude: Double, var denseForestIsoValue: Int) {
-    val isDenseForest: Boolean = if(MapConst.inForestIsoValue.contains(denseForestIsoValue)) true else false
-    val isSparseForest: Boolean = if(!isDenseForest && MapConst.inForestIsoValue.contains(isoValue)) true else false
-    val isRiver: Boolean = true
+  class Cell(val squareSide: Int, val x: Int, val y: Int,
+             val sparseForestIsoValue: Int,
+             val altitude: Double,
+             val denseForestIsoValue: Int,
+             val riverIsoValue: Int) {
 
-    val yNORTH = 0
-    val xNORTH: Int = squareSide/2
-    val yEAST: Int = squareSide/2
-    val xEAST: Int = squareSide
-    val ySOUTH: Int = squareSide
-    val xSOUTH: Int = squareSide/2
-    val yWEST: Int = squareSide/2
-    val xWEST = 0
+    val isRiver: Boolean = if(MapConst.inTerrainIsoValue.contains(riverIsoValue)) true else false
+    val isDenseForest: Boolean = if(!isRiver && MapConst.inTerrainIsoValue.contains(denseForestIsoValue)) true else false
+    val isSparseForest: Boolean = if(!isDenseForest && !isRiver && MapConst.inTerrainIsoValue.contains(sparseForestIsoValue)) true else false
+
+    val compass: Compass = Compass(squareSide)
 
     override def toString: String = s"$altitude"
 
-    def getLines: Serializable = {
-      //do not change next two lines!
+    def getPolygons(terrain: String): (Vector[Int], Vector[Int]) = {
       val xPix = y*squareSide
       val yPix = x*squareSide
+      var isoValue = 0
+
+      if(terrain == "forest")
+        isoValue = sparseForestIsoValue
+      else if(terrain == "river")
+        isoValue = riverIsoValue
 
       isoValue match {
-        case 1 => (xPix + xWEST, yPix + yWEST, xPix + xSOUTH, yPix + ySOUTH)
-        case 2 => (xPix + xSOUTH, yPix + ySOUTH, xPix + xEAST, yPix + yEAST)
-        case 3 | 12 => (xPix + xEAST, yPix + yEAST, xPix + xWEST, yPix + yWEST)
-        case 4 | 11 => (xPix + xNORTH, yPix + yNORTH, xPix + xEAST, yPix + yEAST)
-        case 5  => ((xPix + xNORTH, yPix + yNORTH, xPix + xWEST, yPix + yWEST), (xPix + xSOUTH, yPix + ySOUTH, xPix + xEAST, yPix + yEAST))
-        case 6 | 9 => (xPix + xNORTH, yPix + yNORTH, xPix + xSOUTH, yPix + ySOUTH)
-        case 7 | 8 => (xPix + xNORTH, yPix + yNORTH, xPix + xWEST, yPix + yWEST)
-        case 10 => ((xPix + xNORTH, yPix + yNORTH, xPix + xEAST, yPix + yEAST), (xPix + xSOUTH, yPix + ySOUTH, xPix + xWEST, yPix + yWEST))
-        case 13 => (xPix + xEAST, yPix + yEAST, xPix + xSOUTH, yPix + ySOUTH)
-        case 14 => (xPix + xWEST, yPix + yWEST, xPix + xSOUTH, yPix + ySOUTH)
-        case _ => null
-      }
-    }
-
-    def getPolygons: (Vector[Int], Vector[Int]) = {
-      val xPix = y*squareSide
-      val yPix = x*squareSide
-
-      isoValue match {
-        case 1 => (Vector(xPix, xPix + xWEST, xPix + xSOUTH), Vector(yPix + squareSide, yPix + yWEST, yPix + ySOUTH))
-        case 2 => (Vector(xPix + squareSide, xPix + xSOUTH, xPix + xEAST),
-          Vector(yPix + squareSide, yPix + ySOUTH, yPix + yEAST))
-        case 3 => (Vector(xPix + xWEST, xPix + xEAST, xPix + squareSide, xPix),
-          Vector(yPix + yWEST, yPix + yEAST, yPix + squareSide, yPix + squareSide))
-        case 4 => (Vector(xPix + squareSide, xPix + xNORTH, xPix + xEAST), Vector(yPix, yPix + yNORTH, yPix + yEAST))
-        case 5 => (Vector(xPix + squareSide, xPix + xEAST, xPix + xSOUTH, xPix, xPix + xWEST, xPix + xNORTH),
-          Vector(yPix, yPix + yEAST, yPix + ySOUTH, yPix + squareSide, yPix + yWEST, yPix + yNORTH))
-        case 6 => (Vector(xPix + squareSide, xPix + squareSide, xPix + xSOUTH, xPix + xNORTH),
-          Vector(yPix, yPix + squareSide, yPix + ySOUTH, yPix + yNORTH))
-        case 7 => (Vector(xPix + xWEST, xPix + xNORTH, xPix + squareSide, xPix + squareSide, xPix),
-          Vector(yPix + yWEST, yPix + yNORTH, yPix, yPix + squareSide, yPix + squareSide))
-        case 8 => (Vector(xPix, xPix + xNORTH, xPix + xWEST), Vector(yPix, yPix + yNORTH, yPix + yWEST))
-        case 9 => (Vector(xPix + xNORTH, xPix + xSOUTH, xPix, xPix),
-          Vector(yPix + yNORTH, yPix + ySOUTH, yPix + squareSide, yPix))
-        case 10 => (Vector(xPix, xPix + xNORTH, xPix + xEAST, xPix + squareSide, xPix + xSOUTH, xPix + xWEST),
-          Vector(yPix, yPix + yNORTH, yPix + yEAST, yPix + squareSide, yPix + ySOUTH, yPix + yWEST))
-        case 11 => (Vector(xPix + xNORTH, xPix + xEAST, xPix + squareSide, xPix, xPix),
-          Vector(yPix + yNORTH, yPix + yEAST, yPix + squareSide, yPix + squareSide, yPix))
-        case 12 => (Vector(xPix, xPix + squareSide, xPix + xEAST, xPix + xWEST),
-          Vector(yPix, yPix, yPix + yEAST, yPix + yWEST))
-        case 13 => (Vector(xPix + xEAST, xPix + xSOUTH, xPix, xPix, xPix + squareSide),
-          Vector(yPix + yEAST, yPix + ySOUTH, yPix + squareSide, yPix, yPix))
-        case 14 => (Vector(xPix + xSOUTH, xPix + xWEST, xPix, xPix + squareSide, xPix + squareSide),
-          Vector(yPix + ySOUTH, yPix + yWEST, yPix, yPix, yPix + squareSide))
+        case 1 => (Vector(xPix, xPix + compass.xWEST, xPix + compass.xSOUTH),
+          Vector(yPix + squareSide, yPix + compass.yWEST, yPix + compass.ySOUTH))
+        case 2 => (Vector(xPix + squareSide, xPix + compass.xSOUTH, xPix + compass.xEAST),
+          Vector(yPix + squareSide, yPix + compass.ySOUTH, yPix + compass.yEAST))
+        case 3 => (Vector(xPix + compass.xWEST, xPix + compass.xEAST, xPix + squareSide, xPix),
+          Vector(yPix + compass.yWEST, yPix + compass.yEAST, yPix + squareSide, yPix + squareSide))
+        case 4 => (Vector(xPix + squareSide, xPix + compass.xNORTH, xPix + compass.xEAST),
+          Vector(yPix, yPix + compass.yNORTH, yPix + compass.yEAST))
+        case 5 => (Vector(xPix + squareSide, xPix + compass.xEAST, xPix + compass.xSOUTH, xPix, xPix + compass.xWEST, xPix + compass.xNORTH),
+          Vector(yPix, yPix + compass.yEAST, yPix + compass.ySOUTH, yPix + squareSide, yPix + compass.yWEST, yPix + compass.yNORTH))
+        case 6 => (Vector(xPix + squareSide, xPix + squareSide, xPix + compass.xSOUTH, xPix + compass.xNORTH),
+          Vector(yPix, yPix + squareSide, yPix + compass.ySOUTH, yPix + compass.yNORTH))
+        case 7 => (Vector(xPix + compass.xWEST, xPix + compass.xNORTH, xPix + squareSide, xPix + squareSide, xPix),
+          Vector(yPix + compass.yWEST, yPix + compass.yNORTH, yPix, yPix + squareSide, yPix + squareSide))
+        case 8 => (Vector(xPix, xPix + compass.xNORTH, xPix + compass.xWEST), Vector(yPix, yPix + compass.yNORTH, yPix + compass.yWEST))
+        case 9 => (Vector(xPix + compass.xNORTH, xPix + compass.xSOUTH, xPix, xPix),
+          Vector(yPix + compass.yNORTH, yPix + compass.ySOUTH, yPix + squareSide, yPix))
+        case 10 => (Vector(xPix, xPix + compass.xNORTH, xPix + compass.xEAST, xPix + squareSide, xPix + compass.xSOUTH, xPix + compass.xWEST),
+          Vector(yPix, yPix + compass.yNORTH, yPix + compass.yEAST, yPix + squareSide, yPix + compass.ySOUTH, yPix + compass.yWEST))
+        case 11 => (Vector(xPix + compass.xNORTH, xPix + compass.xEAST, xPix + squareSide, xPix, xPix),
+          Vector(yPix + compass.yNORTH, yPix + compass.yEAST, yPix + squareSide, yPix + squareSide, yPix))
+        case 12 => (Vector(xPix, xPix + squareSide, xPix + compass.xEAST, xPix + compass.xWEST),
+          Vector(yPix, yPix, yPix + compass.yEAST, yPix + compass.yWEST))
+        case 13 => (Vector(xPix + compass.xEAST, xPix + compass.xSOUTH, xPix, xPix, xPix + squareSide),
+          Vector(yPix + compass.yEAST, yPix + compass.ySOUTH, yPix + squareSide, yPix, yPix))
+        case 14 => (Vector(xPix + compass.xSOUTH, xPix + compass.xWEST, xPix, xPix + squareSide, xPix + squareSide),
+          Vector(yPix + compass.ySOUTH, yPix + compass.yWEST, yPix, yPix, yPix + squareSide))
         case 15 => (Vector(xPix, xPix + squareSide, xPix + squareSide, xPix),
           Vector(yPix, yPix, yPix + squareSide, yPix + squareSide))
         case _ => null
@@ -83,40 +69,21 @@ object MapGenerator{
   }
 
   object Cell {
-    /*var squareSide = None: Option[Int]
-
-    var yNORTH = None: Option[Int]
-    var xNORTH = None: Option[Int]
-    var yEAST = None: Option[Int]
-    var xEAST = None: Option[Int]
-    var ySOUTH = None: Option[Int]
-    var xSOUTH = None: Option[Int]
-    var yWEST = None: Option[Int]
-    var xWEST = None: Option[Int]*/
-
-    def apply(squareSide: Int, x: Int, y: Int, isoValue: Int, altitude: Double, denseForestIsoValue: Int): Cell =
-      new Cell(squareSide, x, y, isoValue, altitude, denseForestIsoValue)
-    /*def apply(_squareSide: Int): Unit = {
-      squareSide = Some(_squareSide)
-
-      yNORTH = Some(0:Int)
-      xNORTH = Some(_squareSide/2:Int)
-      yEAST = Some(_squareSide/2:Int)
-      xEAST = Some(_squareSide:Int)
-      ySOUTH = Some(_squareSide:Int)
-      xSOUTH = Some(_squareSide/2:Int)
-      yWEST = Some(_squareSide/2:Int)
-      xWEST = Some(0:Int)
-    }*/
+    def apply(squareSide: Int, x: Int, y: Int,
+              sparseForestIsoValue: Int, altitude: Double, denseForestIsoValue: Int, riverIsoValue: Int): Cell =
+      new Cell(squareSide, x, y, sparseForestIsoValue, altitude, denseForestIsoValue, riverIsoValue)
   }
 
   object MapConst {
-    val inForestIsoValue: Array[Int] = Array(3, 5, 6, 7, 9, 10, 11, 12, 13, 14 ,15)
+    val inTerrainIsoValue: Array[Int] = Array(3, 5, 6, 7, 9, 10, 11, 12, 13, 14 ,15)
 
-    val biomFrequency = 0.02
+    val forestFrequency = 0.02
     val terrainFrequency = 0.02
     val sparseForestThresh = 0.3
     val denseForestThresh: Double = sparseForestThresh + 0.1
+
+    val obstaclesFrequency = 0.15
+    val obstaclesThresh = 0.2
   }
 
   class Map(val height: Int, val width: Int) extends Terrain {
@@ -131,62 +98,53 @@ object MapGenerator{
     val terrainPerlin: PerlinNoise = PerlinNoise(128)
 
     //point 1 is black point 0 is white
-    val points: Seq[Vector[Double]] = Vector.tabulate(height+1, width+1)((x, y) => biomPerlin.noise(x*MapConst.biomFrequency, y*MapConst.biomFrequency))
+    val forestPoints: Seq[Vector[Double]] = Vector.tabulate(height+1, width+1)((x, y) => biomPerlin.noise(x*MapConst.forestFrequency, y*MapConst.forestFrequency))
 
-    val map: Seq[Vector[Cell]] = Vector.tabulate(height, width)((x, y) =>
-      Cell(squareSide, x, y, calculateIsoValue(x, y, MapConst.sparseForestThresh),
-        getAltitude(terrainPerlin.noise(x*MapConst.terrainFrequency, y*MapConst.terrainFrequency)),
-        calculateIsoValue(x, y, MapConst.denseForestThresh)))
+    val riverGenerator: RiverGenerator = RiverGenerator(height+1, width+1, MapConst.obstaclesFrequency, MapConst.obstaclesThresh)
+
+    val riverPoints: Seq[Vector[Int]] = riverGenerator.getRiverPoints(getRandomVecLeftUp(height, width), getRandomVecRightDown(height, width))
+
+    val map: Seq[Vector[Cell]] = Vector.tabulate(height, width)((y, x) =>
+      Cell(squareSide, y, x,
+        calculateIsoValue(y, x, MapConst.sparseForestThresh, "forest"),
+        getAltitude(terrainPerlin.noise(y*MapConst.terrainFrequency, x*MapConst.terrainFrequency)),
+        calculateIsoValue(y, x, MapConst.denseForestThresh, "forest"),
+        calculateIsoValue(y, x, 0.5, "river")))
 
     val GUI = new MapGUI(windowWidth, windowHeight, squareSide)
 
-    addPoints()
-    addLines()
-    addPolygons()
+    addPolygons("forest")
+    addPolygons("river")
     addRectangles()
     GUI.drawMap()
 
     override def toString: String =
       map.map(row => row.mkString(" ")).mkString("\n")
 
-    private def calculateIsoValue(x: Int, y: Int, thresh: Double): Int = {
-      val a = if(points(x)(y) >= thresh) 1 else 0
-      val b = if(points(x)(y+1) >= thresh) 1 else 0
-      val c = if(points(x+1)(y+1) >= thresh) 1 else 0
-      val d = if(points(x+1)(y) >= thresh) 1 else 0
+    private def calculateIsoValue(x: Int, y: Int, thresh: Double, terrain: String): Int = {
+      var a = 0
+      var b = 0
+      var c = 0
+      var d = 0
+
+      if(terrain == "forest") {
+        a = if (forestPoints(x)(y) >= thresh) 1 else 0
+        b = if (forestPoints(x)(y + 1) >= thresh) 1 else 0
+        c = if (forestPoints(x + 1)(y + 1) >= thresh) 1 else 0
+        d = if (forestPoints(x + 1)(y) >= thresh) 1 else 0
+      }
+      else {
+        a = if (riverPoints(x)(y) >= thresh) 1 else 0
+        b = if (riverPoints(x)(y + 1) >= thresh) 1 else 0
+        c = if (riverPoints(x + 1)(y + 1) >= thresh) 1 else 0
+        d = if (riverPoints(x + 1)(y) >= thresh) 1 else 0
+      }
       getIsoValue(a, b, c, d)
     }
 
-    private def addPoints(): Unit = {
+    private def addPolygons(terrain: String):Unit = {
       map.foreach(row => row.foreach(cell => {
-        if(cell.isDenseForest)
-          GUI.addPoint(cell.y * squareSide, cell.x * squareSide, 2)
-        else if(cell.isSparseForest)
-          GUI.addPoint(cell.y * squareSide, cell.x * squareSide, 1)
-        else
-          GUI.addPoint(cell.y * squareSide, cell.x * squareSide, 0)
-      }))
-    }
-
-    private def addLines(): Unit = {
-      map.foreach(row => row.foreach(cell => {
-        val lines = cell.getLines
-        lines match {
-          case (x1:Int, y1:Int, x2:Int, y2:Int) =>
-            GUI.addLine(x1, y1, x2, y2)
-
-          case ((x1:Int, y1:Int, x2:Int, y2:Int), (x3:Int, y3:Int, x4:Int, y4:Int)) =>
-            GUI.addLine(x1, y1, x2, y2)
-            GUI.addLine(x3, y3, x4, y4)
-
-          case _ =>
-        }
-      }))
-    }
-
-    private def addPolygons():Unit = {
-      map.foreach(row => row.foreach(cell => {
-        val polygons = cell.getPolygons
+        val polygons = cell.getPolygons(terrain)
 
         polygons match {
           case (xs: Vector[Int], ys: Vector[Int]) =>
@@ -196,7 +154,7 @@ object MapGenerator{
             xs.foreach(x => xsJava.add(x))
             ys.foreach(y => ysJava.add(y))
 
-            GUI.addPolygon(xsJava, ysJava)
+            GUI.addPolygon(xsJava, ysJava, terrain)
           case _ =>
         }
       }))
@@ -213,7 +171,9 @@ object MapGenerator{
 
     import utilities.TerrainType._
     override def getTerrainType(position: Vector2D): TerrainType = {
-      if(map(position.x)(position.y).isSparseForest)
+      if(map(position.x)(position.y).isRiver)
+        River
+      else if(map(position.x)(position.y).isSparseForest)
         SparseForest
       else if(map(position.x)(position.y).isSparseForest)
         DenseForest
@@ -234,24 +194,15 @@ object MapGenerator{
 
       if(map(agentPosition.x)(agentPosition.y).isSparseForest && (!map(place.x)(place.y).isSparseForest && !map(place.x)(place.y).isDenseForest)) {
         //agent is in sparse forest and place is outside of forest
-        if(visibility >= -5)
-          true
-        else
-          false
+        if(visibility >= -5) true else false
       }
       else if(!map(agentPosition.x)(agentPosition.y).isSparseForest && !map(agentPosition.x)(agentPosition.y).isDenseForest && (map(place.x)(place.y).isSparseForest || map(place.x)(place.y).isDenseForest)) {
         //agent is outside of the forest and place is in the forest
-        if(visibility >= -1)
-          true
-        else
-          false
+        if(visibility >= -1) true else false
       }
       else {
         //every other possibility
-        if(visibility >= -10)
-          true
-        else
-          false
+        if(visibility >= -10) true else false
       }
     }
 
@@ -287,6 +238,30 @@ object MapGenerator{
   //convert noise (in range [-1,1]) to altitude
   val getAltitude: Double => Double = (noise: Double) => {
     (noise+1)/2
+  }
+
+  val getRandomVecLeftUp: (Int, Int) => Vector2D = (height: Int, width: Int) => {
+    val rand = scala.util.Random
+    if(rand.nextInt(2) == 0) {
+      //Up border
+      Vector2D((0.25*width).asInstanceOf[Int] + rand.nextInt((0.5*width).asInstanceOf[Int]),0)
+    }
+    else {
+      //Left border
+      Vector2D(0, (0.25*height).asInstanceOf[Int] + rand.nextInt((0.5*height).asInstanceOf[Int]))
+    }
+  }
+
+  val getRandomVecRightDown: (Int, Int) => Vector2D = (height: Int, width: Int) => {
+    val rand = scala.util.Random
+    if(rand.nextInt(2) == 0) {
+      //Down border
+      Vector2D((0.25*width).asInstanceOf[Int] + rand.nextInt((0.5*width).asInstanceOf[Int]),height)
+    }
+    else {
+      //Right border
+      Vector2D(width, (0.25*height).asInstanceOf[Int] + rand.nextInt((0.5*height).asInstanceOf[Int]))
+    }
   }
 
   val getVisionLine: (Int, Int, Int, Int) => Array[(Int, Int)] = (xAgent, xPlace, yAgent, yPlace) => {

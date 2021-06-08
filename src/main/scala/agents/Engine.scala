@@ -133,7 +133,7 @@ object Engine extends App {
       ys(index) = agent.position.y
       color(index) = agent.team.id * agent.health / agent.statistics("maxHealth")
       morale(index) = Math.min(1, Math.max(0, agent.morale / agent.statistics("maxMorale")))
-      troopType(index) = 3
+      troopType(index) = 0
 
       index += 1
     }
@@ -141,13 +141,11 @@ object Engine extends App {
     canvas.paintMap(xs, ys, color, troopType, morale)
   }
 
-  val rows = 75
-  val cols = 50
+  val rows = 70
+  val cols = 40
 
   import mapGenerator.MapGenerator.Map
   val canvas = new Map(cols, rows)
 
-  import mapGenerator.RoadGenerator
-  new RoadGenerator(70, 60)
-  //run(50, 50)
+  run(200, 200)
 }
