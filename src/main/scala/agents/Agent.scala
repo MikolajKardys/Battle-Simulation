@@ -20,6 +20,9 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   // Wartości zależące od typu jednostki
   var statistics: Map[String, Double] = Map()
   var terrainModifier: Map[TerrainType, Double] = Map()
+  var terrainAttack: TerrainType => Double = Map(
+    Meadow -> 1, SparseForest -> 1, DenseForest -> 1, River -> 1
+  )
   var typeModifier: Map[TroopType, Double] = Map()
   /////////////////////////////////////////
 
@@ -60,7 +63,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
       val target = posTargets(Random.nextInt(posTargets.length))
 
-      val currTerrain = terrainModifier(Engine.terrainMap.getTerrainType(position.flip()))
+      val currTerrain = terrainAttack(Engine.terrainMap.getTerrainType(position.flip()))
 
       val hitStrength = statistics("strength") * currTerrain
 

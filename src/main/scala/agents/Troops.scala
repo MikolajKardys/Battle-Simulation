@@ -3,7 +3,7 @@ package agents
 import agents.Teams.Teams
 import run.app.Engine
 import utilities.{TroopType, Vector2D}
-import utilities.TerrainType._
+import utilities.TerrainType.{SparseForest, _}
 import utilities.TroopType._
 import utilities.Vector2D.directionTab
 
@@ -44,7 +44,7 @@ class HeavyInf(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir
   )
 
   typeModifier = Map(
-    TroopType.Infantry -> 1.2, TroopType.HeavyInfantry -> 1, TroopType.Cavalry -> 1.5, TroopType.Bowman -> 1 / 1.5
+    TroopType.Infantry -> 1.5, TroopType.HeavyInfantry -> 1, TroopType.Cavalry -> 1.5, TroopType.Bowman -> 2 / 3
   )
 
   health = statistics("maxHealth")
@@ -110,7 +110,7 @@ class Cavalry(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir,
 
   statistics = Map(
     "range" -> 1.5, "strength" -> 5, "maxHealth" -> 15, "attackCost" -> 5, "moveCost" -> 2, "maxMorale" -> 10,
-    "value" -> 2
+    "value" -> 2.5
   )
 
   terrainModifier = Map(
@@ -151,12 +151,16 @@ class Bowman(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir, 
   override val troopType: TroopType = TroopType.Bowman
 
   statistics = Map(
-    "range" -> 10, "strength" -> 3, "maxHealth" -> 10, "attackCost" -> 20, "moveCost" -> 5, "maxMorale" -> 10,
-    "value" -> 4
+    "range" -> 10, "strength" -> 3, "maxHealth" -> 15, "attackCost" -> 20, "moveCost" -> 5, "maxMorale" -> 10,
+    "value" -> 1.5
   )
 
   terrainModifier = Map(
-    Meadow -> 1, SparseForest -> 0.6, DenseForest -> 0.3, River -> 0.5
+    Meadow -> 1.2, SparseForest -> 0.9, DenseForest -> 0.7, River -> 0.5
+  )
+
+  terrainAttack = Map(
+    Meadow -> 1, SparseForest -> 0.8, DenseForest -> 0.5, River -> 0.5
   )
 
   typeModifier = Map(
@@ -170,13 +174,17 @@ class Bowman(pos: Vector2D, dir: Vector2D, team: Teams) extends Agent(pos, dir, 
   override def chooseAction(): ActionType.ActionType = {
     val enemiesNear = enemies.count(_.position.getDistance(position) <= 2)
 
-    if (morale < 0 || enemiesNear > 0 || Engine.terrainMap.getTerrainType(position.flip()) == River)
+    if (morale < 0 || enemiesNear > 0)
       return ActionType.Flee
 
     val inRange = enemies.filter(_.position.getDistance(position) <= statistics("range"))
 
-    if (inRange.isEmpty)
+    if (inRange.isEmpty) {
+      if (position != pos){
+        move(ActionType.Fight, (newPos: Vector2D) => pos.getDistance(newPos))
+      }
       return ActionType.Brace
+    }
 
     ActionType.Fight
   }
