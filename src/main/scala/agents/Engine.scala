@@ -99,6 +99,12 @@ class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
         }
       }
 
+      for (agent <- agentList){
+        if (agent.health <= 0){
+          agent.die()
+        }
+      }
+
       agentList = agentList.filter(agent => agent.health > 0 && !agent.flees)
       teams("reds") = teams("reds").filter(agent => agent.health > 0 && !agent.flees)
       teams("blues") = teams("blues").filter(agent => agent.health > 0 && !agent.flees)

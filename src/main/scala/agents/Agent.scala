@@ -17,9 +17,11 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
   import ActionType._
 
-  // Wartości które będą zmieniały się w zależności od typu jednostki
+  // Wartości zależące od typu jednostki
   var statistics: Map[String, Double] = Map()
   var terrainModifier: Map[TerrainType, Double] = Map()
+  var typeModifier: Map[TroopType, Double] = Map()
+  /////////////////////////////////////////
 
   var teammates: List[Agent] = List[Agent]()
   var enemies: List[Agent] = List[Agent]()
@@ -29,6 +31,14 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
   var health: Double = 0
   var lastHealth: Double = 0 // Do liczenia morale
 
+  def die(): Unit = {
+    val mates = Engine.getSurrounding(position, radius = 3).filter(_.team == team)
+
+    for (mate <- mates){
+      mate.morale -= statistics("value")
+    }
+  }
+
   def criteriaVal(enemy: Agent): Double = {
     var value = 1 / position.getDistance(enemy.position)
     if (hitBy.contains(enemy)){
@@ -37,7 +47,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
     if (health > enemy.health){
       value *= 2
     }
-    value * Math.sqrt(enemy.hitBy.length + 1)
+    value * Math.sqrt(enemy.hitBy.length + 1) * typeModifier(enemy.troopType)
   }
 
   def attack(enemies: List[Agent]): Boolean = {
@@ -50,18 +60,20 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
 
       val target = posTargets(Random.nextInt(posTargets.length))
 
-      val hitStrength = statistics("strength")  //TODO: Terrain advantage
+      val currTerrain = terrainModifier(Engine.terrainMap.getTerrainType(position.flip()))
 
-      target.health -= hitStrength
-      morale += target.statistics("value")
+      val hitStrength = statistics("strength") * currTerrain
+
+      target.health -= hitStrength * typeModifier(target.troopType)
+
+      morale += target.statistics("value") * typeModifier(target.troopType)
 
       if (target.health <= 0)
         morale += target.statistics("value")
 
       target.hitBy = target.hitBy.appended(this)
 
-      val attackCost = statistics("attackCost")  //TODO: Terrain advantage
-
+      val attackCost = statistics("attackCost") * currTerrain
       tokens += attackCost
 
       return true
@@ -87,11 +99,14 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
       moves = moves.sortBy(criteria)
 
       if (criteria(position) > criteria(moves.head)){
-        val moveModifier = Math.pow(Engine.terrainMap.elevation(position.flip(), moves.head.flip()), 20)
+        val moveModifier = Engine.terrainMap.elevation(position.flip(), moves.head.flip())
+
+        val distModifier = position.getDistance(moves.head)
+
+        val moveCost = statistics("moveCost") * moveModifier * distModifier /
+          terrainModifier(Engine.terrainMap.getTerrainType(position.flip()))
 
         position = moves.head
-
-        val moveCost = statistics("moveCost") * moveModifier //TODO: Terrain advantage
 
         tokens += moveCost
 
@@ -117,7 +132,8 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
       if(agent.team == team)
         newMorale += agent.morale.sign * agent.statistics("value") / position.getDistance(agent.position)
       else {
-        newMorale -= agent.morale.sign * agent.statistics("value") / position.getDistance(agent.position)
+        newMorale -= agent.morale.sign * agent.statistics("value") / position.getDistance(agent.position) /
+          typeModifier(agent.troopType)
       }
     }
 
@@ -136,7 +152,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
     }
     else {
       var seeAgents = for (other <- allAgents if other.health > 0 && other != this) yield other
-      seeAgents = seeAgents.filter((other: Agent) => canSeeFunc(position.flip(), other.position.flip()))
+      //seeAgents = seeAgents.filter((other: Agent) => canSeeFunc(position.flip(), other.position.flip()))
 
       flees = false
 
@@ -183,7 +199,7 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
     }
   }
   def brace(): Unit = {
-
+    morale += statistics("maxMorale") / 10
   }
 }
 
