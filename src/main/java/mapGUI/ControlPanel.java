@@ -1,7 +1,5 @@
 package mapGUI;
 
-import run.app;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -31,6 +29,7 @@ public class ControlPanel extends JPanel implements ActionListener {
         frame.setLayout(null);
 
         this.setLayout(null);
+        this.setBackground(Color.WHITE);
 
         start = new JButton("START");
         start.setSize(200, 30);
@@ -43,18 +42,22 @@ public class ControlPanel extends JPanel implements ActionListener {
         infantryButton.setActionCommand("Infantry");
         infantryButton.setBounds(50, 20, 150, 30);
         infantryButton.setSelected(true);
+        infantryButton.setBackground(Color.WHITE);
 
         heavyInfantryButton = new JRadioButton("Heavy infantry");
         heavyInfantryButton.setBounds(50, 60, 150, 30);
         heavyInfantryButton.setActionCommand("Heavy infantry");
+        heavyInfantryButton.setBackground(Color.WHITE);
 
         cavalryButton = new JRadioButton("Cavalry");
         cavalryButton.setBounds(50, 100, 150, 30);
         cavalryButton.setActionCommand("Cavalry");
+        cavalryButton.setBackground(Color.WHITE);
 
         archersButton = new JRadioButton("Archers");
         archersButton.setBounds(50, 140, 150, 30);
         archersButton.setActionCommand("Archers");
+        archersButton.setBackground(Color.WHITE);
 
         ButtonGroup groupType = new ButtonGroup();
         groupType.add(infantryButton);
@@ -74,12 +77,14 @@ public class ControlPanel extends JPanel implements ActionListener {
 
         redButton = new JRadioButton("Red");
         redButton.setActionCommand("Red");
-        redButton.setBounds(250, 60, 75, 30);
+        redButton.setBounds(270, 60, 75, 30);
         redButton.setSelected(true);
+        redButton.setBackground(Color.WHITE);
 
         blueButton = new JRadioButton("Blue");
-        blueButton.setBounds(250, 100, 75, 30);
+        blueButton.setBounds(270, 100, 75, 30);
         blueButton.setActionCommand("Blue");
+        blueButton.setBackground(Color.WHITE);
 
         ButtonGroup groupTeam = new ButtonGroup();
         groupTeam.add(redButton);
@@ -107,8 +112,8 @@ public class ControlPanel extends JPanel implements ActionListener {
 
     public int getTeam() {
         if(redButton.isSelected())
-            return 0;
-        return 1;
+            return 1;
+        return 0;
     }
 
     @Override
