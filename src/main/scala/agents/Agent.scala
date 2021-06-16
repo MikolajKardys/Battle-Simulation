@@ -154,8 +154,12 @@ class Agent(var position: Vector2D, var direction: Vector2D, val team: Teams) {
       tokens -= 1
     }
     else {
+      //Nie należy zmieniać tego var na val, ponieważ zakomentowany niżej kod pozwala na zastosowanie
+      //algorytmu ograniczającego pole widzenia jednostek na polu bitwy; to tego służy też nieużywana
+      //obecnie metoda 'canSeeFunc'
       var seeAgents = for (other <- allAgents if other.health > 0 && other != this) yield other
       //seeAgents = seeAgents.filter((other: Agent) => canSeeFunc(position.flip(), other.position.flip()))
+
 
       flees = false
 
