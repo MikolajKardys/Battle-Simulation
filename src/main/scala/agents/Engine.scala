@@ -1,7 +1,6 @@
 package agents
 
 import utilities.Vector2D
-import utilities.TroopType
 
 import scala.util.Random
 import scala.collection.mutable
@@ -110,7 +109,7 @@ class EngineClass(val rows: Int, val cols: Int, val terrainMap: Map){
       teams("blues") = teams("blues").filter(agent => agent.health > 0 && !agent.flees)
 
       //Handle visualization
-      Thread.sleep(10)
+      Thread.sleep(30)
       repaintMap()
     }
   }
